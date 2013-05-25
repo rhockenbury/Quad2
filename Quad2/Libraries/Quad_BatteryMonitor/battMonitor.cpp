@@ -10,7 +10,7 @@ Date: 5/22/2013  9:55AM
 #include "../Quad_Defines/globals.h"
 #include <Arduino.h>
 
-
+///
 // Constructor
 battMonitor::battMonitor()
 {
