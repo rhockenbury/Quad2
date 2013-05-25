@@ -1,0 +1,11 @@
+
+ADXL345	KEYWORD1
+init	KEYWORD2
+test	KEYWORD2
+getID	KEYWORD2
+setSampleRate	KEYWORD2
+setFormat	KEYWORD2
+setPowerMode	KEYWORD2
+setOffset	KEYWORD2
+getRawData	KEYWORD2
+getValue	KEYWORD2

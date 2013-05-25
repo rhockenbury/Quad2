@@ -1,0 +1,57 @@
+/*
+I2Cdev.h
+Defines I2C device abstraction on top of Wire.h
+Authors: Ryler Hockenbury
+Date: 4/20/2013  11:49PM
+
+Code modified from I2Cdev arduino library
+WARNING:  Must include Wire.h in sketch.
+
+*/
+
+
+#ifndef I2Cdev_h
+#define I2Cdev_h
+
+#include <arduino.h>   // for millis()
+#include <inttypes.h>
+#include <Wire.h>
+        
+//#define I2CDEV_SERIAL_DEBUG
+
+class I2Cdev
+{
+  public:
+    I2Cdev(); 
+
+    
+    static bool writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, 
+      uint8_t data);
+
+    static bool writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, 
+      uint8_t length, uint8_t data); 
+
+    static bool writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data); 
+
+    static bool writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, 
+      uint8_t *data);
+    
+
+    static int8_t readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, 
+      uint8_t *data, uint16_t TIMEOUT=I2Cdev::readTimeout);
+
+    static int8_t readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, 
+      uint8_t length, uint8_t *data, uint16_t TIMEOUT=I2Cdev::readTimeout); 
+
+    static int8_t readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, 
+      uint16_t TIMEOUT=I2Cdev::readTimeout); 
+
+    static int8_t readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, 
+      uint8_t *data, uint16_t TIMEOUT=I2Cdev::readTimeout);
+
+    static uint16_t readTimeout; 
+    
+};
+
+
+#endif
