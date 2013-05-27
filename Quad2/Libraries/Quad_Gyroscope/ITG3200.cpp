@@ -1,10 +1,13 @@
 /*
-ITG3200.cpp
-Defines methods for interaction with gyro
-Authors: Ryler Hockenbury
-Date: 4/21/2013  1:12PM
-
-*/
+ * HMC5883L.cpp
+ *
+ *  Created on: April 21, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for ITG3200 3-channel gyroscope sensor
+ * NOTE: Sensor is packaged with HMC5883L and ADXL345
+ *
+ */
 
 #include "ITG3200.h"
 #include "../Quad_Defines/globals.h"

@@ -4,14 +4,14 @@
  *  Created on: May 26, 2013
  *      Author: Ryler Hockenbury
  *
- * Read and process stick input from receiver
- * Note:  6 channel PPM with sync period
+ * Library to read and process PPM input from stick
+ * NOTE:  6 channel AR6210 receiver from Spektrum
  *
  */
 
-#include "../Quad_Defines/globals.h"
 #include <arduino.h>
 #include "receiver.h"
+#include "../Quad_Defines/globals.h"
 
 void AR6210::init()
 {

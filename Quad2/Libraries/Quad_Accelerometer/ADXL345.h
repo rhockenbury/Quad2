@@ -1,10 +1,13 @@
 /*
-ADXL345.h
-Defines functionality for ADXL345 3-channel accelerometer sensor
-Authors: Ryler Hockenbury
-Date: 5/09/2013 09:33 PM
-
-*/
+ * ADXL345.h
+ *
+ *  Created on: May 9, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for ADXL345 3-channel accelerometer sensor
+ * NOTE: Sensor is packaged with ITG3200 and HMC5883L
+ *
+ */
 
 #ifndef ADXL345_h
 #define ADXL345_h
@@ -17,9 +20,9 @@ Date: 5/09/2013 09:33 PM
 
 #define ADXL345_WHOAMI_REGADDR      0x00  // contains I2C address
 #define ADXL345_XOFFSET_REGADDR     0x1E  // contains axis offset
-#define ADXL345_YOFFSET_REGADDR     0x1F 
-#define ADXL345_ZOFFSET_REGADDR     0x20  
-#define ADXL345_SMPLRT_REGADDR      0x2C  // contains sample rate 
+#define ADXL345_YOFFSET_REGADDR     0x1F
+#define ADXL345_ZOFFSET_REGADDR     0x20
+#define ADXL345_SMPLRT_REGADDR      0x2C  // contains sample rate
 #define ADXL345_PWRMODE_REGADDR     0x2D  // configures sleep and measure modes
 #define ADXL345_DATAFORMAT_REGADDR  0x31  // configures range and resolution
 #define ADXL345_XDATA0_REGADDR      0x32  // contains X data
@@ -67,16 +70,16 @@ class ADXL345 {
     void setSampleRate(uint8_t rate);
     void setFormat(uint8_t range);
     void setPowerMode(bool mode);
-        
+
     void setOffset();
-    void getRawData(); 
-    void getValue(float *value); 
-        
+    void getRawData();
+    void getValue(float *value);
+
 
   private:
     uint8_t devAddr;
     uint8_t buffer[6];
-    int16_t data[3]; 
+    int16_t data[3];
 
     bool accelStatus;
 

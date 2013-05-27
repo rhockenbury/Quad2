@@ -1,14 +1,13 @@
 /*
-I2Cdev.cpp
-Defines I2C device abstraction on top of Wire.h
-Authors: Ryler Hockenbury
-Date: 4/21/2013  08:05PM
-
-Code modified from I2Cdev arduino library
-WARNING:  Must include Wire.h in sketch.
-
-*/
-
+ * I2Cdev.cpp
+ *
+ *  Created on: April 21, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for I2C bus device interaction
+ * WARNING:  Must include Wire.h in main sketch
+ *
+ */
 
 #include "I2Cdev.h"
 

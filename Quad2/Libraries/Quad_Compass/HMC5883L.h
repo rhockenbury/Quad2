@@ -1,11 +1,13 @@
 /*
-HMC5883L.h
-Defines functionality for HMC583L 3-channel magnetometer
-Authors: Ryler Hockenbury
-Date: 5/11/2013 10:37 AM
-
-*/
-
+ * HMC5883L.h
+ *
+ *  Created on: May 11, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for HMC5883L 3-channel magnetometer sensor
+ * NOTE: Sensor is packaged with ITG3200 and ADXL345
+ *
+ */
 
 #ifndef HMC5883L_h
 #define HMC5883L_h

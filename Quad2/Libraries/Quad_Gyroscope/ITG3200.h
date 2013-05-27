@@ -1,11 +1,13 @@
 /*
-ITG3200.h
-Defines functionality for ITG3200 3-channel gyroscope sensor
-Authors: Ryler Hockenbury
-Date: 4/20/2013 09:56 PM
-
-*/
-
+ * HMC5883L.h
+ *
+ *  Created on: April 20, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for ITG3200 3-channel gyroscope sensor
+ * NOTE: Sensor is packaged with HMC5883L and ADXL345
+ *
+ */
 
 #ifndef ITG3200_h
 #define ITG3200_h

@@ -1,11 +1,13 @@
 /*
-HMC5883L.cpp
-Defines methods for interaction with compass
-Authors: Ryler Hockenbury
-Date: 5/11/2013  12:30PM
-
-*/
-
+ * HMC5883L.cpp
+ *
+ *  Created on: May 11, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for HMC5883L 3-channel magnetometer sensor
+ * NOTE: Sensor is packaged with ITG3200 and ADXL345
+ *
+ */
 
 #include "HMC5883L.h"
 #include "../Quad_Defines/globals.h"

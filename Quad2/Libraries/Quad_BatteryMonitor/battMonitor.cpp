@@ -1,16 +1,17 @@
 /*
-battMonitor.cpp
-Defines methods for interaction with battery current and voltage sensor
-Authors: Ryler Hockenbury
-Date: 5/22/2013  9:55AM
-
-*/
+ * battMonitor.cpp
+ *
+ *  Created on: May 22, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for Attopilot current and voltage sensor
+ *
+ */
 
 #include "battMonitor.h"
 #include "../Quad_Defines/globals.h"
 #include <Arduino.h>
 
-///
 // Constructor
 battMonitor::battMonitor()
 {

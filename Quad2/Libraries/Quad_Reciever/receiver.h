@@ -1,9 +1,16 @@
+/*
+ * reciever.h
+ *
+ *  Created on: May 16, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library to read and process PPM input from stick
+ * NOTE:  6 channel AR6210 receiver from Spektrum
+ *
+ */
 
-// read PPM
-
-// convert PPM to angle
-
-// take care of zero throttle inputs
+#ifndef receiver_h
+#define receiver_h
 
 #define PPM_PIN 2    // digital pin 2 to support external interrupts
 
@@ -47,3 +54,5 @@ class AR6210 {
 
 
 };
+
+#endif  /* receiver_h */

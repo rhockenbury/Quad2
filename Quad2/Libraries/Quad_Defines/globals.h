@@ -1,9 +1,12 @@
 /*
-globals.h
-Defines system global #defines
-Authors: Ryler Hockenbury
-Date: 5/10/2013  12:05AM
-*/
+ * globals.h
+ *
+ *  Created on: May 10, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * System #defines
+ *
+ */
 
 #ifndef globals_h
 #define globals_h

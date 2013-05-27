@@ -1,21 +1,20 @@
 /*
-battMonitor.h
-Defines functionality for Attopilot Current and Voltage Sensor
-Authors: Ryler Hockenbury
-Date: 5/22/2013 09:38 AM
-
-Physical Connections:
--------------------------
-Arduino  | Peripherals
--------- | --------------
-Pin A0 --- AttoPilot "V"
-Pin A1 --- AttoPilot "I"
-GND ------ AttoPilot "GND"
-
-Voltage and current read functions are to be called from timer
-based ISR.
-
-*/
+ * battMonitor.h
+ *
+ *  Created on: May 22, 2013
+ *      Author: Ryler Hockenbury
+ *
+ * Library for Attopilot current and voltage sensor
+ *
+ * Physical Connections:
+ * -------------------------
+ * Arduino  | Peripherals
+ * -------- | --------------
+ * Pin A0 --- AttoPilot "V"
+ * Pin A1 --- AttoPilot "I"
+ * GND ------ AttoPilot "GND"
+ *
+ */
 
 #ifndef battMonitor_h
 #define battMonitor_h
