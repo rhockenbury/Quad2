@@ -35,6 +35,12 @@ ITG3200::ITG3200()
 // *Clock source = xGyro
 void ITG3200::init()
 {   
+  if( test() ) // if sensor responds to ID test
+  {
+    gyroStatus = ON;
+	vehicleStatus = vehicleStatus | GYRO_READY;
+  }
+
   setFullRange(); 
   setSampleRate(0x9); 
   setLPF(ITG3200_DLPF_188); 
@@ -122,8 +128,6 @@ void ITG3200::setOffset()
   offset[Y] = (float) sumY / 10.0;
   offset[Z] = (float) sumZ / 10.0;
 
-  gyroStatus = ON;
-  vehicleStatus = vehicleStatus | GYRO_READY;
 }
 
 

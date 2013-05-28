@@ -34,6 +34,12 @@ HMC5883L::HMC5883L()
 // *Continous sample mode
 void HMC5883L::init()
 {   
+  if( test() ) // if sensor responds to ID test
+  {
+    compStatus = ON;
+	vehicleStatus = vehicleStatus | MAG_READY;
+  }
+
   setRange(HMC5883L_GAIN2); 
   setSampleRate(HMC5883L_SMPLRT_75HZ); 
   setMode(HMC5883L_CONTMODE); 
@@ -79,7 +85,6 @@ void HMC5883L::setMode(uint8_t mode)
 
 
 
-
 //Method to set the offset values (zero voltage values) 
 // *WARNING: the platform should be leveled first
 //           using body mounted bubble level
@@ -109,8 +114,6 @@ void HMC5883L::setOffset()
   offset[Y] = (float) sumY / 10.0;
   offset[Z] = (float) sumZ / 10.0;
 
-  compStatus = ON;
-  vehicleStatus = vehicleStatus | MAG_READY;
 }
 
 

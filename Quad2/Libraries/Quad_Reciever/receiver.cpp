@@ -13,6 +13,13 @@
 #include "receiver.h"
 #include "../Quad_Defines/globals.h"
 
+// Constructor
+AR6210::AR6210()
+{
+   ///
+}
+
+//Method to initialize receiver
 void AR6210::init()
 {
 	pinMode(PPM_PIN, INPUT);
@@ -22,14 +29,14 @@ void AR6210::init()
 }
 
 
-
+//Method to read receiver channels and synchronize
 void AR6210::readChannels()
 {
 	unsigned int currentTime = micros();
 
 	unsigned int channelWidth = currentTime - channelStartTime;
 
-	if(currentChannel == NUM_CHANNELS)
+	if(currentChannel == MAX_CHANNELS)
 	{
 
 		if(channelWidth < MIN_FRAME_WIDTH)
@@ -51,6 +58,46 @@ void AR6210::readChannels()
 
 }
 
+//Method to run channels through low pass filter
+float AR6210::smoothChannels(float current, float previous, int factor)
+{
+  return previous*(1-factor) + current*factor;
+}
+
+//Method to process system setup commands
+void AR6210::processInitCommands()
+{
+	// calibrate sensors
+	if(channelValue[THROTTLE] < STICK_MINCHECK && channelValue[YAW] < STICK_MINCHECK)
+	{
+       /// initialize IMU
+		// initialize current / voltage sensor
+
+	}
+
+	// arm motors
+	if(channelValue[PITCH] < STICK_MINCHECK && channelValue[ROLL] < STICK_MINCHECK)
+	{
+
+
+	}
+}
+
+
+//Method to map stick position to angle (1ms to 2ms -> -45deg to +45deg)
+void AR6210::convertToAngle()
+{
+
+
+}
+
+
+
+void AR6210::channelSync()
+{
+
+
+}
 
 
 

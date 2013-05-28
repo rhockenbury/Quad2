@@ -15,7 +15,7 @@
 #define Y 1
 #define Z 2
 
-#define TRUE 1     // these don't seem to be defined in arduino environment
+#define TRUE  1
 #define FALSE 0
 
 #define ON 1
@@ -32,6 +32,13 @@
 #define TX_READY     0x32
 
 extern uint8_t vehicleStatus;
+
+#define THROTTLE 1
+#define ROLL     2
+#define PITCH    3
+#define YAW      4
+#define AUX1     5
+#define AUX2     6
 
 
 #endif /* globals_h */

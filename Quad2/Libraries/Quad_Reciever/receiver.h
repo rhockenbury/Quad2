@@ -12,9 +12,9 @@
 #ifndef receiver_h
 #define receiver_h
 
-#define PPM_PIN 2    // digital pin 2 to support external interrupts
+#define PPM_PIN 2    // digital pin 2 to support external interrupts (Arduino UNO)
 
-#define NUM_CHANNELS 6
+#define MAX_CHANNELS 6
 
 #define STICK_COMMAND_MIN 1000   // 1s pulse length
 #define STICK_COMMAND_MID 1500
@@ -23,10 +23,8 @@
 #define STICK_MINCHECK (STICK_COMMAND_MIN + 100)
 #define STICK_MAXCHECK (STICK_COMMAND_MAX - 100)
 
-#define MIN_FRAME_WIDTH   (20000 - NUM_CHANNELS*2000)
+#define MIN_FRAME_WIDTH   (20000 - MAX_CHANNELS*2000)
 #define MAX_CHANNEL_WIDTH 2000
-
-// define stick input limits
 
 class AR6210 {
 
@@ -36,7 +34,7 @@ class AR6210 {
     void init();
 
     void readChannels(); // interrupt driven (every 20 ms? )
-    void smoothChannels();
+    float smoothChannels(float current, float previous, int factor);
     void processInitCommands(); // calibrate sensors, arm motors
     void convertToAngle();
     void channelSync();
@@ -47,11 +45,12 @@ class AR6210 {
     unsigned int channelStartTime;
     byte currentChannel;
 
-    int16_t channelValue[NUM_CHANNELS];
+    int16_t rawChannelValue[MAX_CHANNELS];
+    float smoothChannelValue[MAX_CHANNELS];
 
-    // channels
-    // time variables
 
+    float smoothFactor[MAX_CHANNELS];
+    float scaleFactor[MAX_CHANNELS];
 
 };
 
