@@ -12,10 +12,11 @@
 
 #include <Wire.h>
 #include "Libraries/Quad_Defines/globals.h"
-#include "Libraries/Quad_I2C/I2Cdev.h"
+#include "Main/Quad_FusionFilter/compFilter.h"
+
 #include "Libraries/Quad_Gyroscope/ITG3200.h"
 #include "Libraries/Quad_Accelerometer/ADXL345.h"
-
+#include "Libraries/Quad_Compass/HMC5883L.h"
 
 //end of add your includes here
 #ifdef __cplusplus

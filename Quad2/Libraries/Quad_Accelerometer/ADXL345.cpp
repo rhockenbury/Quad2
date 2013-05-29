@@ -18,6 +18,10 @@ ADXL345::ADXL345()
   devAddr = ADXL345_ADDR;
   accelStatus = OFF;
 
+  offset[X] = 0.0;
+  offset[Y] = 0.0;
+  offset[Z] = 0.0;
+
   data[X] = 0;
   data[Y] = 0;
   data[Z] = 0;
@@ -27,7 +31,7 @@ ADXL345::ADXL345()
 
 // Method to put sensor in default configuration
 // *Sample rate = 100 Hz
-// *Range = +/- 4g
+// *Range = +/- 8g
 // *Enable measurements
 void ADXL345::init()
 {
@@ -38,7 +42,7 @@ void ADXL345::init()
   }
 
   setSampleRate(ADXL345_RATE_100);
-  setFormat(ADXL345_RANGE_4G);
+  setFormat(ADXL345_RANGE_8G);
   setPowerMode(ON);
 
   setOffset();
@@ -123,13 +127,17 @@ void ADXL345::setOffset()
   - Offsets will be automatically added to data registers
   */
 
-//Serial.println(sumX/20.0);
-//Serial.println(sumY/20.0);
-//Serial.println(sumZ/20.0);
+  offset[X] = (float) sumX / 10.0;
+  offset[Y] = (float) sumY / 10.0;
+  offset[Z] = (float) sumZ / 10.0 - 64;//ADXL345_8GSENSITIVITY;
 
-  I2Cdev::writeByte(devAddr, ADXL345_XOFFSET_REGADDR, (int8_t) -round(sumX / 20.0) );
-  I2Cdev::writeByte(devAddr, ADXL345_YOFFSET_REGADDR, (int8_t) -round(sumY / 20.0) );
-  I2Cdev::writeByte(devAddr, ADXL345_ZOFFSET_REGADDR, (int8_t) -round(sumZ / 20.0) );
+  //Serial.println(offset[X]);
+  //Serial.println(offset[Y]);
+  //Serial.println(offset[Z]);
+
+  //I2Cdev::writeByte(devAddr, ADXL345_XOFFSET_REGADDR, (int8_t) -round(sumX / 20.0) );
+  //I2Cdev::writeByte(devAddr, ADXL345_YOFFSET_REGADDR, (int8_t) -round(sumY / 20.0) );
+  //I2Cdev::writeByte(devAddr, ADXL345_ZOFFSET_REGADDR, (int8_t) -round(sumZ / 20.0) );
 
 }
 
@@ -143,14 +151,14 @@ void ADXL345::getRawData()
   data[Y] = (((int16_t)buffer[3]) << 8) | buffer[2];
   data[Z] = (((int16_t)buffer[5]) << 8) | buffer[4];
 
-  /*
-Serial.println("X data");
- Serial.println(data[X]);
- Serial.println("Y data");
- Serial.println(data[Y]);
- Serial.println("Z data");
- Serial.println(data[Z]);
- */
+
+ //Serial.println("X data");
+ //Serial.println(data[X]);
+ //Serial.println("Y data");
+ //Serial.println(data[Y]);
+ //Serial.println("Z data");
+ //Serial.println(data[Z]);
+
 }
 
 
@@ -160,7 +168,7 @@ void ADXL345::getValue(float *value)
 {
   getRawData();
 
-  value[X] = (float)data[X] / (float) ADXL345_4GSENSITIVITY;
-  value[Y] = (float)data[Y] / (float) ADXL345_4GSENSITIVITY;
-  value[Z] = (float)data[Z] / (float) ADXL345_4GSENSITIVITY;
+  value[X] = ((float)data[X] - offset[X]) / (float) ADXL345_8GSENSITIVITY;
+  value[Y] = ((float)data[Y] - offset[Y]) / (float) ADXL345_8GSENSITIVITY;
+  value[Z] = ((float)data[Z] - offset[Z]) / (float) 64; //ADXL345_8GSENSITIVITY;
 }

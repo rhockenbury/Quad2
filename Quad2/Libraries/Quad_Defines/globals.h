@@ -40,5 +40,7 @@ extern uint8_t vehicleStatus;
 #define AUX1     5
 #define AUX2     6
 
+#define MICROS  (1.0/100000.0)
+#define MILLIS  (1.0/1000.0)
 
 #endif /* globals_h */

@@ -14,16 +14,16 @@
 #include "../Quad_Defines/globals.h"
 
 // Constructor
-AR6210::AR6210()
-{
+//AR6210::AR6210()
+//{
    ///
-}
+//}
 
 //Method to initialize receiver
 void AR6210::init()
 {
 	pinMode(PPM_PIN, INPUT);
-	attachInterrupt(0, readChannels, RISING);
+	//attachInterrupt(0, readChannels, RISING);
 
 	vehicleStatus = vehicleStatus | RX_READY;
 }
@@ -50,8 +50,8 @@ void AR6210::readChannels()
 	{
 		if( channelWidth > MAX_CHANNEL_WIDTH)
 			channelSync();
-		else
-			channelValue[currentChannel++] = channelWidth;
+		//else
+			//channelValue[currentChannel++] = channelWidth;
 	}
 
 	channelStartTime = currentTime;
@@ -67,8 +67,8 @@ float AR6210::smoothChannels(float current, float previous, int factor)
 //Method to process system setup commands
 void AR6210::processInitCommands()
 {
-	// calibrate sensors
-	if(channelValue[THROTTLE] < STICK_MINCHECK && channelValue[YAW] < STICK_MINCHECK)
+  // calibrate sensors
+ // if(channelValue[THROTTLE] < STICK_MINCHECK && channelValue[YAW] < STICK_MINCHECK)
 	{
        /// initialize IMU
 		// initialize current / voltage sensor
@@ -76,7 +76,7 @@ void AR6210::processInitCommands()
 	}
 
 	// arm motors
-	if(channelValue[PITCH] < STICK_MINCHECK && channelValue[ROLL] < STICK_MINCHECK)
+	//if(channelValue[PITCH] < STICK_MINCHECK && channelValue[ROLL] < STICK_MINCHECK)
 	{
 
 

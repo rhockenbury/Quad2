@@ -55,7 +55,8 @@
 
 #define ADXL345_2GSENSITIBITY   256  // G-sensitivity options
 #define ADXL345_4GSENSITIVITY   128
-#define ADXL345_8GSENSITIVITY   64
+#define ADXL345_8GSENSITIVITY   74
+#define ADXL345_16GSENSITIVITY  32
 
 
 class ADXL345 {
@@ -80,6 +81,7 @@ class ADXL345 {
     uint8_t devAddr;
     uint8_t buffer[6];
     int16_t data[3];
+    float offset[3];
 
     bool accelStatus;
 
