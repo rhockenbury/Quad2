@@ -11,91 +11,121 @@
 
 #include <arduino.h>
 #include "receiver.h"
+#include "../Quad_Math/math.h"
 #include "../Quad_Defines/globals.h"
 
 // Constructor
-//AR6210::AR6210()
-//{
-   ///
-//}
+AR6210::AR6210()
+{
+  channelStartTime = 0.0;
+  currentChannel = 0;
+
+  for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
+  {
+    rawChannelValue[channel] = STICK_COMMAND_MID;
+    smoothChannelValue[channel] = STICK_COMMAND_MID;
+
+    smoothFactor[channel] = 0.95;
+    scaleFactor[channel] = 0.0;
+  }
+}
+
+
 
 //Method to initialize receiver
 void AR6210::init()
 {
-	pinMode(PPM_PIN, INPUT);
-	//attachInterrupt(0, readChannels, RISING);
+  pinMode(PPM_PIN, INPUT);
+  //attachInterrupt(0, readChannels, RISING);
 
-	vehicleStatus = vehicleStatus | RX_READY;
+  vehicleStatus = vehicleStatus | RX_READY;
 }
 
 
 //Method to read receiver channels and synchronize
 void AR6210::readChannels()
 {
-	unsigned int currentTime = micros();
+  unsigned int currentTime = micros();
+  unsigned int channelWidth = currentTime - channelStartTime;
 
-	unsigned int channelWidth = currentTime - channelStartTime;
+  if(currentChannel == MAX_CHANNELS)
+  {
+    if(channelWidth < MIN_FRAME_WIDTH)
+      channelSync();
+    else
+      currentChannel = 0;
+  }
 
-	if(currentChannel == MAX_CHANNELS)
-	{
-
-		if(channelWidth < MIN_FRAME_WIDTH)
-			channelSync();
-
-		else
-			currentChannel = 0;
+  else
+  {
+    if( channelWidth > MAX_CHANNEL_WIDTH)
+      channelSync();
+	else {
+	  rawChannelValue[currentChannel] = channelWidth;
+	  smoothChannels();
+	  currentChannel++;
 	}
 
-	else
-	{
-		if( channelWidth > MAX_CHANNEL_WIDTH)
-			channelSync();
-		//else
-			//channelValue[currentChannel++] = channelWidth;
-	}
+  }
 
-	channelStartTime = currentTime;
+  channelStartTime = currentTime;
 
 }
+
+
+
+//Method to force synchronization
+void AR6210::channelSync()
+{
+  currentChannel = MAX_CHANNELS;
+}
+
+
 
 //Method to run channels through low pass filter
-float AR6210::smoothChannels(float current, float previous, int factor)
+float AR6210::smoothChannels()
 {
-  return previous*(1-factor) + current*factor;
+  return filter::LPF( (float) rawChannelValue[currentChannel], smoothChannelValue[currentChannel],
+		                 smoothFactor[currentChannel]) / scaleFactor[currentChannel];
 }
 
-//Method to process system setup commands
+
+
+//Method to process system setup stick commands
 void AR6210::processInitCommands()
 {
   // calibrate sensors
- // if(channelValue[THROTTLE] < STICK_MINCHECK && channelValue[YAW] < STICK_MINCHECK)
-	{
+  // if(channelValue[THROTTLE] < STICK_MINCHECK && channelValue[YAW] < STICK_MINCHECK)
+  {
        /// initialize IMU
 		// initialize current / voltage sensor
 
-	}
+  }
 
-	// arm motors
-	//if(channelValue[PITCH] < STICK_MINCHECK && channelValue[ROLL] < STICK_MINCHECK)
-	{
+  // arm motors
+  if(smoothChannelValue[PITCH] < STICK_MINCHECK && smoothChannelValue[ROLL] < STICK_MINCHECK)
+  {
+    // arm motors -> flash some LEDs to show craft is waiting for pilot
+	//               arm the motors
 
+	// set motors to min value
+	onGround = FALSE;
 
-	}
-}
-
-
-//Method to map stick position to angle (1ms to 2ms -> -45deg to +45deg)
-void AR6210::convertToAngle()
-{
-
+  }
 
 }
 
 
-
-void AR6210::channelSync()
+//Method to grab receiver stick commands
+void AR6210::getStickCommands(float stickCommands[6])
 {
+  // disable interrupts
+  // read smoothChannelValues
 
+  for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
+    stickCommands[channel] = smoothChannelValue[channel];
+
+  // enable interrupts
 
 }
 

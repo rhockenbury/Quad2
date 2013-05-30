@@ -17,11 +17,13 @@
 #define MAX_CHANNELS 6
 
 #define STICK_COMMAND_MIN 1000   // 1s pulse length
-#define STICK_COMMAND_MID 1500
+#define STICK_COMMAND_MID 1500   // 1.5s pulse length
 #define STICK_COMMAND_MAX 2000	 // 2s pulse length
 
 #define STICK_MINCHECK (STICK_COMMAND_MIN + 100)
 #define STICK_MAXCHECK (STICK_COMMAND_MAX - 100)
+
+#define STICK_MINTHROTTLE (STICK_COMMAND_MIN + 100)
 
 #define MIN_FRAME_WIDTH   (20000 - MAX_CHANNELS*2000)
 #define MAX_CHANNEL_WIDTH 2000
@@ -34,20 +36,19 @@ class AR6210 {
     void init();
 
     void readChannels(); // interrupt driven (every 20 ms? )
-    float smoothChannels(float current, float previous, int factor);
-    void processInitCommands(); // calibrate sensors, arm motors
-    void convertToAngle();
     void channelSync();
+    float smoothChannels();
 
+    void processInitCommands();
+    void getStickCommands(float stickCommands[6]);
 
   private:
 
     unsigned int channelStartTime;
-    byte currentChannel;
+    uint8_t currentChannel;
 
     int16_t rawChannelValue[MAX_CHANNELS];
-    float smoothChannelValue[MAX_CHANNELS];
-
+    volatile float smoothChannelValue[MAX_CHANNELS];
 
     float smoothFactor[MAX_CHANNELS];
     float scaleFactor[MAX_CHANNELS];
