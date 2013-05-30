@@ -11,10 +11,13 @@
 #include "Quad2.h"
 
 uint8_t vehicleStatus = 0x0;
+bool onGround = TRUE;
 
 ITG3200 gyro;
 ADXL345 accel;
 HMC5883L comp;
+
+AR6210 receiver;
 
 float gyroData[3] = {0.0, 0.0, 0.0};  // x, y and z axis
 float accelData[3] = {0.0, 0.0, 0.0};
@@ -22,6 +25,8 @@ float compData[3] = {0.0, 0.0, 0.0};
 
 float currentPosition[3] = {0.0, 0.0, 0.0}; // roll, pitch, yaw
 float targetPosition[3] = {0.0, 0.0, 0.0};
+
+float stickCommands[6] = {1500, 1500, 1500, 1500, 1500, 1500};
 
 unsigned int currentSystemTime = 0;
 unsigned int lastSystemTime = 0;
@@ -41,8 +46,6 @@ void setup()
   comp.init();
 
   delay(1000);
-
-  // process zero throttle inputs
 }
 
 void loop()
@@ -55,7 +58,9 @@ void loop()
   /* 100 Hz Tasks
    * Sample critical sensors and calculate orientation by
    * fusing and filtering sensor measurements.
+   *
    */
+
   if(currentSystemTime >= (last100HzTime + 10000)) // 100 Hz tasks
   {
     gyro.getRate(gyroData);
@@ -66,18 +71,30 @@ void loop()
     last100HzTime = currentSystemTime;
   }
 
-  if(currentSystemTime >= (last50HzTime + 5000)) // 50 Hz tasks
+  /* 50 Hz Tasks
+   * Read commands from radio and process.
+   *
+   */
+
+  if(currentSystemTime >= (last50HzTime + 20000)) // 50 Hz tasks
   {
-    // stick input to get target position
+	if(onGround) receiver.processInitCommands();
+    receiver.getStickCommands(stickCommands);
+
+    // process stick commands
+    //  - convert roll, pitch and yaw to angle (this will be the targetPosition)
+    //  - convert throttle to
+    //  - convert aux channels to ON/OFF, auto-level mode, autodescent mode ??
 
     last50HzTime = currentSystemTime;
   }
 
-  // process target and current position
+  // flight controller -> process target and current position
 
-  // command motors
+  // command motors 100 Hz or more
 
   lastSystemTime = currentSystemTime;
+
 }
 
 

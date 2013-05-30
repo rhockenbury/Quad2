@@ -71,23 +71,19 @@ void getOrientation( float orientation[3], float gyroData[3], float accelData[3]
   roll = alpha*rollGyro + (1-alpha)*rollAccel;
 
   //Compass angle calculation
-  float compNorm = math.getMagnitude(compData);
+  float compNorm = vector::getMagnitude(compData);
 
   xComp = compData[0] / compNorm;
   yComp = compData[1] / compNorm;
   zComp = compData[2] / compNorm;
 
   yawComp = atan2( (-yComp*cos(roll) + zComp*sin(roll) ) ,
-		         (xComp*cos(pitch) + yComp*sin(pitch)*sin(roll) + zComp*sin(pitch)*cos(roll)) );
+		     (xComp*cos(pitch) + yComp*sin(pitch)*sin(roll) + zComp*sin(pitch)*cos(roll)) )*180/PI;
 
   //Complementary filter (yaw)
   yaw = alpha*yawGyro + (1-alpha)*yawComp;
 
-
-
-
   //Format and print serial stream
-
 
   #ifdef SERIAL_CHART
   Serial.print(counter);

@@ -18,6 +18,9 @@
 #include "Libraries/Quad_Accelerometer/ADXL345.h"
 #include "Libraries/Quad_Compass/HMC5883L.h"
 
+#include "Libraries/Quad_Reciever/receiver.h"
+
+
 //end of add your includes here
 #ifdef __cplusplus
 extern "C" {
