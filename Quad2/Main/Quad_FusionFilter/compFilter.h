@@ -13,77 +13,52 @@
 #define compFilter_h
 
 #include "../../Libraries/Quad_Defines/globals.h"
+#include "../../Libraries/Quad_Math/math.h"
 
-//#define SERIAL_CHART           // serial chart utility for graphing serial data
-#define SERIAL_MONITOR_DEBUG
+//#define SERIAL_CHART           // format for serial chart
+#define SERIAL_MONITOR_DEBUG     // format for serial monitor
 
-int counter;      // measurement counter
+int counter = 1;     // measurement counter
 
 // time and integration variables
-unsigned int prevTime;
-unsigned int currTime;
-unsigned int timeStep;
+unsigned int prevTime = 0;
+unsigned int currTime = 0;
+unsigned int timeStep = 0;
 
 // pitch, roll, yaw from gyro
-float pitchGyro;
-float rollGyro;
-float yawGyro;
+float pitchGyro = 0.0;
+float rollGyro = 0.0;
+float yawGyro = 0.0;
 
 // pitch, roll and yaw from accel
-float pitchAccel;
-float rollAccel;
-float yawAccel;
+float pitchAccel = 0.0;
+float rollAccel = 0.0;
+float yawAccel = 0.0;
+
+// component values from compass
+float yawComp = 0.0;
+float compNorm = 0.0;
+float xComp = 0.0;
+float yComp = 0.0;
+float zComp = 0.0;
 
 // fused and filtered pitch, roll, and yaw
-float pitch;
-float roll;
-float yaw;
+float pitch = 0.0;
+float roll = 0.0;
+float yaw = 0.0;
 
 // filter weight
-float alpha;
-
-void initCompFilter();
-void getOrientation(float orientation[3],float gyroData[3], float accelData[3], float compData[3]);
-
-
-void initCompFilter()
-{
-
-  counter = 1;      // measurement counter
-
-  // time and integration variables
-  prevTime = 0;
-  currTime = 0;
-  timeStep = 0;
-
-  // pitch, roll, yaw from gyro
-  pitchGyro = 0.0;
-  rollGyro = 0.0;
-  yawGyro = 0.0;
-
-  // pitch, roll and yaw from accel
-  pitchAccel = 0.0;
-  rollAccel = 0.0;
-  yawAccel = 0.0;
-
-  // fused and filtered pitch, roll, and yaw
-  pitch = 0.0;
-  roll = 0.0;
-  yaw = 0.0;
-
-  // filter weight
-  alpha = 0.02;
-}
+float alpha = 0.02;
 
 void getOrientation( float orientation[3], float gyroData[3], float accelData[3], float compData[3] )
 {
   //Gyro angle calculation
   currTime = micros();
+  timeStep = currTime - prevTime;
 
-  timeStep = currTime - prevTime; //*MICROS;
-  pitchGyro = pitchGyro + gyroData[X]*timeStep/1000000.0;
-  rollGyro = rollGyro + gyroData[Y]*timeStep/1000000.0;
-  yawGyro = yawGyro + gyroData[Z]*timeStep/1000000.0;
+  pitchGyro = pitchGyro + gyroData[X]*timeStep/MICROS;
+  rollGyro = rollGyro + gyroData[Y]*timeStep/MICROS;
+  yawGyro = yawGyro + gyroData[Z]*timeStep/MICROS;
 
   prevTime = currTime;
 
@@ -91,20 +66,23 @@ void getOrientation( float orientation[3], float gyroData[3], float accelData[3]
   pitchAccel = atan2(accelData[1], accelData[2])*180/PI;
   rollAccel = atan2(accelData[0], accelData[2])*180/PI;
 
-  /*
-   * Compass angle calculation
-   */
-
-    //
-
-
-
-
-  //Complementary filter
+  //Complementary filter (pitch and roll)
   pitch = alpha*pitchGyro + (1-alpha)*pitchAccel;
   roll = alpha*rollGyro + (1-alpha)*rollAccel;
 
-  // fuse with compass data
+  //Compass angle calculation
+  float compNorm = math.getMagnitude(compData);
+
+  xComp = compData[0] / compNorm;
+  yComp = compData[1] / compNorm;
+  zComp = compData[2] / compNorm;
+
+  yawComp = atan2( (-yComp*cos(roll) + zComp*sin(roll) ) ,
+		         (xComp*cos(pitch) + yComp*sin(pitch)*sin(roll) + zComp*sin(pitch)*cos(roll)) );
+
+  //Complementary filter (yaw)
+  yaw = alpha*yawGyro + (1-alpha)*yawComp;
+
 
 
 
@@ -142,24 +120,32 @@ void getOrientation( float orientation[3], float gyroData[3], float accelData[3]
   //Serial.print(timeStep);
   //Serial.print("\t");
 
+  if(pitchGyro >= 0) Serial.print(" ");
   Serial.print(pitchGyro);
   Serial.print("\t\t");
-  Serial.print(rollGyro);
-  Serial.print("\t\t");
-  Serial.print(yawGyro);
-  Serial.print("\t\t");
-
+  if(pitchAccel >= 0) Serial.print(" ");
   Serial.print(pitchAccel);
   Serial.print("\t\t");
-  Serial.print(rollAccel);
-  Serial.print("\t\t");
-  Serial.print(yawAccel);
-  Serial.print("\t\t");
-
+  if(pitch >= 0) Serial.print(" ");
   Serial.print(pitch);
   Serial.print("\t\t");
+
+  if(rollGyro >= 0) Serial.print(" ");
+  Serial.print(rollGyro);
+  Serial.print("\t\t");
+  if(pitchAccel >= 0) Serial.print(" ");
+  Serial.print(rollAccel);
+  Serial.print("\t\t");
+  if(roll >= 0) Serial.print(" ");
   Serial.print(roll);
   Serial.print("\n");
+
+  //if(yawGyro >= 0) Serial.print(" ");
+  //Serial.print(yawGyro);
+  //Serial.print("\t\t");
+  //if(pitchAccel >= 0) Serial.print(" ");
+  //Serial.print(yawAccel);
+  //Serial.print("\t\t");
 
   #endif
 
@@ -167,7 +153,7 @@ void getOrientation( float orientation[3], float gyroData[3], float accelData[3]
 
   orientation[0] = pitch;
   orientation[1] = roll;
-  orientation[2] = 0; // yaw;
+  orientation[2] = yaw;
 
 }
 

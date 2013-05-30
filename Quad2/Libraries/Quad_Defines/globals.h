@@ -40,7 +40,7 @@ extern uint8_t vehicleStatus;
 #define AUX1     5
 #define AUX2     6
 
-#define MICROS  (1.0/100000.0)
-#define MILLIS  (1.0/1000.0)
+#define MICROS  1000000  // 1 second = 1*10^6 microseconds
+#define MILLIS  1000     // 1 second = 1*10^3 milliseconds
 
 #endif /* globals_h */

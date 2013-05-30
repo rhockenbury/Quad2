@@ -11,7 +11,7 @@
 #ifndef math_h
 #define math_h
 
-class filter
+class math
 {
   public:
 
@@ -19,6 +19,8 @@ class filter
     static float HPF(float currentUnfiltered, float lastUnfiltered,
     		         float lastFiltered, float alpa);
 
+    static float getMagnitude(float value[3]);
+    static float getMagnitude(float xValue, float yValue, float zValue);
 
   private:
 

@@ -23,9 +23,12 @@ float compData[3] = {0.0, 0.0, 0.0};
 float currentPosition[3] = {0.0, 0.0, 0.0}; // roll, pitch, yaw
 float targetPosition[3] = {0.0, 0.0, 0.0};
 
-unsigned int currentSystemTime;
+unsigned int currentSystemTime = 0;
 unsigned int lastSystemTime = 0;
-unsigned int deltaTime;
+unsigned int deltaSystemTime = 0;
+
+unsigned int last100HzTime = 0;
+unsigned int last50HzTime = 0;
 
 void setup()
 {
@@ -37,8 +40,6 @@ void setup()
   accel.init();
   comp.init();
 
-  initCompFilter();
-
   delay(1000);
 
   // process zero throttle inputs
@@ -46,30 +47,37 @@ void setup()
 
 void loop()
 {
-  currentSystemTime= micros();
-  deltaTime = currentSystemTime - lastSystemTime;
+  currentSystemTime = micros();
+  deltaSystemTime = currentSystemTime - lastSystemTime;
 
   //Serial.println(deltaTime);
 
-  // 100 Hz tasks
-  if(deltaTime >= 10000)
+  /* 100 Hz Tasks
+   * Sample critical sensors and calculate orientation by
+   * fusing and filtering sensor measurements.
+   */
+  if(currentSystemTime >= (last100HzTime + 10000)) // 100 Hz tasks
   {
     gyro.getRate(gyroData);
     accel.getValue(accelData);
+    comp.getHeading(compData);
     getOrientation(currentPosition, gyroData, accelData, compData);
+
+    last100HzTime = currentSystemTime;
   }
 
-  // 50 Hz tasks
-  if(deltaTime >= 20000)
+  if(currentSystemTime >= (last50HzTime + 5000)) // 50 Hz tasks
   {
     // stick input to get target position
 
+    last50HzTime = currentSystemTime;
   }
 
   // process target and current position
 
   // command motors
 
+  lastSystemTime = currentSystemTime;
 }
 
 
