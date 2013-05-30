@@ -11,7 +11,7 @@
 #ifndef math_h
 #define math_h
 
-class math
+class filter
 {
   public:
 
@@ -19,18 +19,21 @@ class math
     static float HPF(float currentUnfiltered, float lastUnfiltered,
     		         float lastFiltered, float alpa);
 
-    static float getMagnitude(float value[3]);
-    static float getMagnitude(float xValue, float yValue, float zValue);
-
   private:
-
-    // empty for now
+    /* empty */
 
 };
 
+class vector
+{
+  public:
+	static float getMagnitude(float value[3]);
+	static float getMagnitude(float xValue, float yValue, float zValue);
 
+  private:
+	/* empty */
 
-
+};
 
 
 #endif /* math_h */
