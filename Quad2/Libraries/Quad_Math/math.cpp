@@ -36,3 +36,21 @@ float vector::getMagnitude(float xValue, float yValue, float zValue)
 {
   return sqrt(xValue*xValue + yValue*yValue + zValue*zValue);
 }
+
+void vector::normalize(float value[3])
+{
+  float mag = vector::getMagnitude(value);
+
+  value[0] /= mag;
+  value[1] /= mag;
+  value[2] /= mag;
+}
+
+void vector::normalize(float xValue, float yValue, float zValue)
+{
+  float mag = vector::getMagnitude(xValue, yValue, zValue);
+
+  xValue /= mag;
+  yValue /= mag;
+  zValue /= mag;
+}

@@ -29,6 +29,8 @@ class vector
   public:
 	static float getMagnitude(float value[3]);
 	static float getMagnitude(float xValue, float yValue, float zValue);
+	static void normalize(float value[3]);
+	static void normalize(float xValue, float yValue, float zValue);
 
   private:
 	/* empty */

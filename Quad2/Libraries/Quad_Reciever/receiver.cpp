@@ -103,7 +103,7 @@ void AR6210::processInitCommands()
   }
 
   // arm motors
-  if(smoothChannelValue[PITCH] < STICK_MINCHECK && smoothChannelValue[ROLL] < STICK_MINCHECK)
+  if(smoothChannelValue[PITCH_CHANNEL] < STICK_MINCHECK && smoothChannelValue[ROLL_CHANNEL] < STICK_MINCHECK)
   {
     // arm motors -> flash some LEDs to show craft is waiting for pilot
 	//               arm the motors

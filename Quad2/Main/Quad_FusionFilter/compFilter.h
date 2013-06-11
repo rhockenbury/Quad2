@@ -14,143 +14,80 @@
 
 #include "../../Libraries/Quad_Defines/globals.h"
 #include "../../Libraries/Quad_Math/math.h"
+#include <arduino.h>
 
-//#define SERIAL_CHART           // format for serial chart
-#define SERIAL_MONITOR_DEBUG     // format for serial monitor
 
-int counter = 1;     // measurement counter
+//unsigned int counter = 1;     // measurement counter
 
-// time and integration variables
-unsigned int prevTime = 0;
-unsigned int currTime = 0;
-unsigned int timeStep = 0;
+//unsigned int previousTime = 0;
+//unsigned int currentTime = 0;
+//float timeStep = 0.0;
 
-// pitch, roll, yaw from gyro
-float pitchGyro = 0.0;
-float rollGyro = 0.0;
-float yawGyro = 0.0;
+float accelAngle[2] = {0.0, 0.0};      // derived angles (roll, pitch) from accelerometer
 
-// pitch, roll and yaw from accel
-float pitchAccel = 0.0;
-float rollAccel = 0.0;
-float yawAccel = 0.0;
+float compAngle = 0.0;  // derived angle (yaw) from compass
 
-// component values from compass
-float yawComp = 0.0;
-float compNorm = 0.0;
-float xComp = 0.0;
-float yComp = 0.0;
-float zComp = 0.0;
+float alpha = 0.98;     // complementary filter weight
 
-// fused and filtered pitch, roll, and yaw
-float pitch = 0.0;
-float roll = 0.0;
-float yaw = 0.0;
 
-// filter weight
-float alpha = 0.02;
-
-void getOrientation( float orientation[3], float gyroData[3], float accelData[3], float compData[3] )
+/* Calculates roll, pitch and yaw from the gyroscope,
+ * accelerometer, and magnetometer data
+ *
+ * Data is fused and filtered with complementary filter.
+ *
+ */
+void getOrientation(float flightAngle[3], float gyroData[3], float accelData[3], float compData[3])
 {
-  //Gyro angle calculation
-  currTime = micros();
-  timeStep = currTime - prevTime;
+  //currentTime = micros();
+  //timeStep = ((float)(currentTime - previousTime))/MICROS;
+  //previousTime = currentTime;
+  // this function is called 100 times a second, so timestep is somewhat guaraneteed
 
-  pitchGyro = pitchGyro + gyroData[X]*timeStep/MICROS;
-  rollGyro = rollGyro + gyroData[Y]*timeStep/MICROS;
-  yawGyro = yawGyro + gyroData[Z]*timeStep/MICROS;
+  //Accelerometer angle calculation
+  accelAngle[ROLL_AXIS] = atan2(accelData[Y],
+ 		 vector::getMagnitude(accelData[X], 0.0, accelData[Z]))*180/PI;
+  accelAngle[PITCH_AXIS] = atan2(accelData[X],
+ 		  vector::getMagnitude(0.0, accelData[Y], accelData[Z]))*180/PI;
 
-  prevTime = currTime;
+  //Complementary filter (roll and pitch)
+  flightAngle[ROLL_AXIS] = alpha*(flightAngle[ROLL_AXIS] + gyroData[ROLL_AXIS]*0.01)
+  		                      + (1.0-alpha)*accelAngle[ROLL_AXIS];
 
-  //Accel angle calculation
-  pitchAccel = atan2(accelData[1], accelData[2])*180/PI;
-  rollAccel = atan2(accelData[0], accelData[2])*180/PI;
-
-  //Complementary filter (pitch and roll)
-  pitch = alpha*pitchGyro + (1-alpha)*pitchAccel;
-  roll = alpha*rollGyro + (1-alpha)*rollAccel;
+  flightAngle[PITCH_AXIS] = alpha*(flightAngle[PITCH_AXIS] + gyroData[PITCH_AXIS]*0.01)
+  		                      + (1.0-alpha)*accelAngle[PITCH_AXIS];
 
   //Compass angle calculation
-  float compNorm = vector::getMagnitude(compData);
+  vector::normalize(compData);
 
-  xComp = compData[0] / compNorm;
-  yComp = compData[1] / compNorm;
-  zComp = compData[2] / compNorm;
+  float cos_roll = cos(flightAngle[ROLL_AXIS]*PI/180);
+  float sin_roll = sin(flightAngle[ROLL_AXIS]*PI/180);
+  float cos_pitch = cos(flightAngle[PITCH_AXIS]*PI/180);
+  float sin_pitch = sin(flightAngle[PITCH_AXIS]*PI/180);
 
-  yawComp = atan2( (-yComp*cos(roll) + zComp*sin(roll) ) ,
-		     (xComp*cos(pitch) + yComp*sin(pitch)*sin(roll) + zComp*sin(pitch)*cos(roll)) )*180/PI;
+  compAngle = atan2( (-compData[Y]*cos_roll + compData[Z]*sin_roll) ,
+    (compData[X]*cos_pitch + compData[Y]*sin_pitch*sin_roll + compData[Z]*sin_pitch*cos_roll) )*180/PI;
 
-  //Complementary filter (yaw)
-  yaw = alpha*yawGyro + (1-alpha)*yawComp;
+  if(compAngle < 0.0)  // return yaw in  range 0 to 360
+ 	compAngle += 360.0;
 
-  //Format and print serial stream
+   flightAngle[YAW_AXIS] = flightAngle[YAW_AXIS] + gyroData[YAW_AXIS]*0.01;
 
-  #ifdef SERIAL_CHART
-  Serial.print(counter);
-  Serial.print(",");
+   // return yaw in range 0 to 360 degrees
+   if(flightAngle[YAW_AXIS] > 360.0)
+	   flightAngle[YAW_AXIS] = 0.0;
 
-  Serial.print(pitchGyro);
-  Serial.print(",");
-  Serial.print(rollGyro);
-  Serial.print(",");
-  //Serial.print(yawGyro);
-  //Serial.print(",");
+   if(flightAngle[YAW_AXIS] < 0.0)
+	   flightAngle[YAW_AXIS] = 360.0;
 
-  Serial.print(pitchAccel);
-  Serial.print(",");
-  Serial.print(rollAccel);
-  Serial.print(",");
- // Serial.print(yawAccel);
- // Serial.print(",");
+   float diff = compAngle - flightAngle[YAW_AXIS];
 
-  Serial.print(pitch);
-  Serial.print(",");
-  Serial.print(roll);
-  Serial.print("\n");
+   if(diff > 180.0)
+	   diff -= 360.0;
 
-  #endif
+   if(diff < -180.0)
+	   diff += 360.0;
 
-  #ifdef SERIAL_MONITOR_DEBUG
-  Serial.print(counter);
-  Serial.print("\t");
-  //Serial.print(timeStep);
-  //Serial.print("\t");
-
-  if(pitchGyro >= 0) Serial.print(" ");
-  Serial.print(pitchGyro);
-  Serial.print("\t\t");
-  if(pitchAccel >= 0) Serial.print(" ");
-  Serial.print(pitchAccel);
-  Serial.print("\t\t");
-  if(pitch >= 0) Serial.print(" ");
-  Serial.print(pitch);
-  Serial.print("\t\t");
-
-  if(rollGyro >= 0) Serial.print(" ");
-  Serial.print(rollGyro);
-  Serial.print("\t\t");
-  if(pitchAccel >= 0) Serial.print(" ");
-  Serial.print(rollAccel);
-  Serial.print("\t\t");
-  if(roll >= 0) Serial.print(" ");
-  Serial.print(roll);
-  Serial.print("\n");
-
-  //if(yawGyro >= 0) Serial.print(" ");
-  //Serial.print(yawGyro);
-  //Serial.print("\t\t");
-  //if(pitchAccel >= 0) Serial.print(" ");
-  //Serial.print(yawAccel);
-  //Serial.print("\t\t");
-
-  #endif
-
-  counter++;
-
-  orientation[0] = pitch;
-  orientation[1] = roll;
-  orientation[2] = yaw;
-
+   flightAngle[YAW_AXIS] = flightAngle[YAW_AXIS] + diff*0.003;
 }
 
 #endif /* compFilter_h */

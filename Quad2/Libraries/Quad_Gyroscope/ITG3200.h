@@ -69,8 +69,9 @@ class ITG3200
     void setSampleRate(uint8_t rate_div);
     void setLPF(uint8_t LPF);
     void setClockSource(uint8_t source);
-
     void setOffset(); 
+
+    float getTemp();
     void getRawData();
     void getRate(float rate[]);
     

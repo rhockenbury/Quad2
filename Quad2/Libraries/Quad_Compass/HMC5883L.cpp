@@ -110,9 +110,9 @@ void HMC5883L::setOffset()
     delay(14); 
   }
 
-  offset[X] = (float) sumX / 10.0;  
-  offset[Y] = (float) sumY / 10.0;
-  offset[Z] = (float) sumZ / 10.0;
+  //offset[X] = (float) sumX / 10.0;
+  //offset[Y] = (float) sumY / 10.0;
+  //offset[Z] = 0.0;// (float) sumZ / 10.0 - (float) HMC5883L_SENSITIVITY2;
 
 }
 

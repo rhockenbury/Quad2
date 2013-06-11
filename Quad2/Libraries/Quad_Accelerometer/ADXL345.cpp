@@ -76,11 +76,13 @@ void ADXL345::setSampleRate(uint8_t rate)
 
 
 
-//Method to set the range format
+//Method to set the range, and enable full resolution
 void ADXL345::setFormat(uint8_t range)
 {
   I2Cdev::writeBits(devAddr, ADXL345_DATAFORMAT_REGADDR, ADXL345_RANGE_BIT,
          ADXL345_RANGE_LENGTH, range);
+
+  I2Cdev::writeBit(devAddr, ADXL345_DATAFORMAT_REGADDR, ADXL345_FULLRES_BIT, ON);
 }
 
 
@@ -120,24 +122,13 @@ void ADXL345::setOffset()
     delay(10);
   }
 
-  /*
-  - Offset registers are 15.6 mg/LSB, and 4g resolution
-     is 7.8 mg/LSB so have to divide by 2 before writing
-  - Have to divide by ten to average the 10 samples
-  - Offsets will be automatically added to data registers
-  */
-
   offset[X] = (float) sumX / 10.0;
   offset[Y] = (float) sumY / 10.0;
-  offset[Z] = (float) sumZ / 10.0 - 64;//ADXL345_8GSENSITIVITY;
+  offset[Z] = (float) sumZ / 10.0 - (float) 256;
 
   //Serial.println(offset[X]);
   //Serial.println(offset[Y]);
   //Serial.println(offset[Z]);
-
-  //I2Cdev::writeByte(devAddr, ADXL345_XOFFSET_REGADDR, (int8_t) -round(sumX / 20.0) );
-  //I2Cdev::writeByte(devAddr, ADXL345_YOFFSET_REGADDR, (int8_t) -round(sumY / 20.0) );
-  //I2Cdev::writeByte(devAddr, ADXL345_ZOFFSET_REGADDR, (int8_t) -round(sumZ / 20.0) );
 
 }
 
@@ -151,13 +142,14 @@ void ADXL345::getRawData()
   data[Y] = (((int16_t)buffer[3]) << 8) | buffer[2];
   data[Z] = (((int16_t)buffer[5]) << 8) | buffer[4];
 
-
- //Serial.println("X data");
- //Serial.println(data[X]);
- //Serial.println("Y data");
- //Serial.println(data[Y]);
- //Serial.println("Z data");
- //Serial.println(data[Z]);
+ /*
+ Serial.println("X data");
+ Serial.println(data[X]);
+ Serial.println("Y data");
+ Serial.println(data[Y]);
+ Serial.println("Z data");
+ Serial.println(data[Z]);
+ */
 
 }
 
@@ -168,7 +160,20 @@ void ADXL345::getValue(float *value)
 {
   getRawData();
 
-  value[X] = ((float)data[X] - offset[X]) / (float) ADXL345_8GSENSITIVITY;
+  value[X] = -((float)data[X] - offset[X]) / (float) ADXL345_8GSENSITIVITY;
   value[Y] = ((float)data[Y] - offset[Y]) / (float) ADXL345_8GSENSITIVITY;
-  value[Z] = ((float)data[Z] - offset[Z]) / (float) 64; //ADXL345_8GSENSITIVITY;
+  value[Z] = ((float)data[Z] - offset[Z]) / (float) 256;
+
+/*
+    if(value[X] >= 0) Serial.print(" ");
+    Serial.print(value[X]);
+    Serial.print("\t\t");
+    if(value[Y] >= 0) Serial.print(" ");
+    Serial.print(value[Y]);
+    Serial.print("\t\t");
+    if(value[Z] >= 0) Serial.print(" ");
+    Serial.print(value[Z]);
+    Serial.print("\n");
+*/
+
 }

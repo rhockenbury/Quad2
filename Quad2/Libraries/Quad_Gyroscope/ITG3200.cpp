@@ -132,6 +132,15 @@ void ITG3200::setOffset()
 
 
 
+//Method to read temperature from sensor
+float ITG3200::getTemp()
+{
+	I2Cdev::readBytes(devAddr,ITG3200_TEMPH_REGADDR, 2, buffer);
+	return (float) (((int16_t)buffer[0] << 8) | buffer[1]);
+}
+
+
+
 
 //Method to read raw data from sensor
 void ITG3200::getRawData() 
@@ -152,6 +161,20 @@ void ITG3200::getRate(float rate[])
   rate[X] = ((float)data[X] - offset[X]) / (float) ITG3200_SENSITIVITY;
   rate[Y] = ((float)data[Y] - offset[Y]) / (float) ITG3200_SENSITIVITY;
   rate[Z] = ((float)data[Z] - offset[Z]) / (float) ITG3200_SENSITIVITY;
+
+  /*
+      if(rate[X] >= 0) Serial.print(" ");
+      Serial.print(rate[X]);
+      Serial.print("\t\t");
+      if(rate[Y] >= 0) Serial.print(" ");
+      Serial.print(rate[Y]);
+      Serial.print("\t\t");
+      if(rate[Z] >= 0) Serial.print(" ");
+      Serial.print(rate[Z]);
+      Serial.print("\n");
+   */
+
+
 }
 
 

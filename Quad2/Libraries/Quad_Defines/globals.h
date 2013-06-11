@@ -15,6 +15,10 @@
 #define Y 1
 #define Z 2
 
+#define ROLL_AXIS  0
+#define PITCH_AXIS 1
+#define YAW_AXIS   2
+
 #define TRUE  1
 #define FALSE 0
 
@@ -33,14 +37,19 @@ extern bool onGround;
 extern uint8_t vehicleStatus;
 
 // need to adjust these based on radio
-#define THROTTLE 0
-#define ROLL     1
-#define PITCH    2
-#define YAW      3
-#define AUX1     4
-#define AUX2     5
+#define THROTTLE_CHANNEL 0
+#define ROLL_CHANNEL     1
+#define PITCH_CHANNEL    2
+#define YAW_CHANNEL      3
+#define AUX1_CHANNEL     4
+#define AUX2_CHANNEL     5
 
-#define MICROS  1000000  // 1 second = 1*10^6 microseconds
-#define MILLIS  1000     // 1 second = 1*10^3 milliseconds
+#define MICROS  1000000.0  // 1 second = 1*10^6 microseconds
+#define MILLIS  1000.0     // 1 second = 1*10^3 milliseconds
+
+//#define PI
+
+//#define D2R
+//#define R2D
 
 #endif /* globals_h */

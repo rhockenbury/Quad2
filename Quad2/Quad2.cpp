@@ -23,24 +23,28 @@ float gyroData[3] = {0.0, 0.0, 0.0};  // x, y and z axis
 float accelData[3] = {0.0, 0.0, 0.0};
 float compData[3] = {0.0, 0.0, 0.0};
 
-float currentPosition[3] = {0.0, 0.0, 0.0}; // roll, pitch, yaw
-float targetPosition[3] = {0.0, 0.0, 0.0};
+float currentFlightAngle[3] = {0.0, 0.0, 0.0}; // roll, pitch, yaw
+float targetFlightAngle[3] = {0.0, 0.0, 0.0};
 
-float stickCommands[6] = {1500, 1500, 1500, 1500, 1500, 1500};
+float stickCommands[6] = {1500, 1500, 1500, 1000, 1000, 1000};
 
-unsigned int currentSystemTime = 0;
-unsigned int lastSystemTime = 0;
-unsigned int deltaSystemTime = 0;
+uint16_t currentSystemTime = 0; // millis() is a 16 bit timer
+uint16_t lastSystemTime = 0;
+uint16_t deltaSystemTime = 0;
 
-unsigned int last100HzTime = 0;
-unsigned int last50HzTime = 0;
+uint16_t last100HzTime = 0;
+uint16_t delta100HzTime = 0;
+uint16_t last50HzTime = 0;
+uint16_t last10HzTime = 0;
 
 void setup()
 {
   Wire.begin(); // join I2C bus
-  Serial.begin(115200); // talk to computer
+  Serial.begin(57600); // talk to computer
 
-  Serial.println("Initializing Sensors");
+ // receiver.processInitCommands(); // sensors and arm ESC
+
+  //Serial.println("Initializing Sensors");
   gyro.init();
   accel.init();
   comp.init();
@@ -50,36 +54,47 @@ void setup()
 
 void loop()
 {
-  currentSystemTime = micros();
+  currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
 
-  //Serial.println(deltaTime);
+  //Serial.println(currentSystemTime);
+  //Serial.println(last100HzTime);
+
+  if(currentSystemTime < last100HzTime)
+	  last100HzTime = 0;
+
+  if(currentSystemTime < last10HzTime)
+ 	  last10HzTime = 0;
+
+  //Serial.println(deltaSystemTime);   // loop time
+
+  // there is a problem with timer overflow here, and maintaining frequency
 
   /* 100 Hz Tasks
-   * Sample critical sensors and calculate orientation by
-   * fusing and filtering sensor measurements.
+   * Sample critical sensors and calculate orientation.
    *
    */
-
-  if(currentSystemTime >= (last100HzTime + 10000)) // 100 Hz tasks
+  if(currentSystemTime >= (last100HzTime + 10))
   {
     gyro.getRate(gyroData);
     accel.getValue(accelData);
     comp.getHeading(compData);
-    getOrientation(currentPosition, gyroData, accelData, compData);
+    getOrientation(currentFlightAngle, gyroData, accelData, compData);
 
     last100HzTime = currentSystemTime;
   }
+
+
+
 
   /* 50 Hz Tasks
    * Read commands from radio and process.
    *
    */
-
-  if(currentSystemTime >= (last50HzTime + 20000)) // 50 Hz tasks
+  if(currentSystemTime >= (last50HzTime + 20))
   {
-	if(onGround) receiver.processInitCommands();
-    receiver.getStickCommands(stickCommands);
+	//if(onGround) receiver.processInitCommands();
+    //receiver.getStickCommands(stickCommands);
 
     // process stick commands
     //  - convert roll, pitch and yaw to angle (this will be the targetPosition)
@@ -90,8 +105,26 @@ void loop()
   }
 
   // flight controller -> process target and current position
-
+  // updatePID(motorCommands[4], stickCommands[6], currentPosition[3], currentRate[3]);
   // command motors 100 Hz or more
+
+
+
+
+  /* 10 Hz Tasks
+   * Send serial stream to ground station.
+   *
+   */
+  if(currentSystemTime >= (last10HzTime + 100))
+  {
+    serialOpen();
+    serialPrint(currentFlightAngle, 3);
+    //serialPrint(battVoltage);
+    //serialPrint(battCurrent);
+    serialClose();
+
+    last10HzTime = currentSystemTime;
+  }
 
   lastSystemTime = currentSystemTime;
 
