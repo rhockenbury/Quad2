@@ -2,49 +2,38 @@
  * PID.h
  *
  *  Created on: May 30, 2013
- *      Author: ryler
+ *      Author: Ryler Hockenbury
+ *
+ * Implementation of PID controller for roll and
+ * pitch control.
+ *
  */
 
-#ifndef PID_H_
-#define PID_H_
+#ifndef pid_h
+#define pid_h
 
-// pass in current orientation
-// pass in stick commands
-// calculate motor commands
+#define MANUAL 0
+#define AUTOMATIC 1
 
+class PID {
 
+	public:
+		PID();
+		void setTunings(double kp, double ki, double kd);
+		double updatePid(double input, double setPoint);
+		void setSampleTime(int newSampleTime);
+		void setOutputLimits(double newMin, double newMax);
+		void setMode(bool mode);
+		void initializeMode();
 
-/*working variables*/
-unsigned long lastTime;
-double Input, Output, Setpoint;
-double errSum, lastErr;
-double kp, ki, kd;
-void Compute()
-{
-   /*How long since we last calculated*/
-   unsigned long now = millis();
-   double timeChange = (double)(now - lastTime);
+	private:
+		float input, output, setPoint;
+		float iTerm;
+		float lastInput;
+		float kp, ki, kd;
+		float outMax, outMin;
+		bool inAuto;
+		unsigned long sampleTime;
+};
 
-   /*Compute all the working error variables*/
-   double error = Setpoint - Input;
-   errSum += (error * timeChange);
-   double dErr = (error - lastErr) / timeChange;  // angular velocity
-
-   /*Compute PID Output*/
-   Output = kp * error + ki * errSum + kd * dErr;
-
-   /*Remember some variables for next time*/
-   lastErr = error;
-   lastTime = now;
-}
-
-void SetTunings(double Kp, double Ki, double Kd)
-{
-   kp = Kp;
-   ki = Ki;
-   kd = Kd;
-}
-
-
-
-#endif /* PID_H_ */
+#endif /* pid_h */
