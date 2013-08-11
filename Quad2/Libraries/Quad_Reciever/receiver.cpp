@@ -13,121 +13,186 @@
 #include "receiver.h"
 #include "../Quad_Math/math.h"
 #include "../Quad_Defines/globals.h"
+#include "../Quad_LED/LED.h"
 
-// Constructor
+
 AR6210::AR6210()
 {
-  channelStartTime = 0.0;
-  currentChannel = 0;
+	channelStartTime = 0.0;
+	currentChannel = 0;
+	syncCounter = 0;
 
-  for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
-  {
-    rawChannelValue[channel] = STICK_COMMAND_MID;
-    smoothChannelValue[channel] = STICK_COMMAND_MID;
+	for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
+	{
+		rawChannelValue[channel] = STICK_COMMAND_MID;
+		smoothChannelValue[channel] = STICK_COMMAND_MID;
 
-    smoothFactor[channel] = 0.95;
-    scaleFactor[channel] = 0.0;
-  }
+		// set throttle and aux to min values
+
+		smoothFactor[channel] = 0.95;
+		scaleFactor[channel] = 0.0;
+	}
 }
 
 
-
-//Method to initialize receiver
-void AR6210::init()
-{
-  pinMode(PPM_PIN, INPUT);
-  //attachInterrupt(0, readChannels, RISING);
-
-  vehicleStatus = vehicleStatus | RX_READY;
+/*
+ * Initialize receiver
+ */
+void AR6210::init() {
+	vehicleStatus = vehicleStatus | RX_READY;
 }
 
 
-//Method to read receiver channels and synchronize
-void AR6210::readChannels()
-{
-  unsigned int currentTime = micros();
-  unsigned int channelWidth = currentTime - channelStartTime;
+/*
+ * Read receiver channels and synchronize
+ */
+void AR6210::readChannels() {
+	// could have rollover problem here
+	unsigned int currentTime = micros();
+	unsigned int channelWidth = currentTime - channelStartTime;
 
-  if(currentChannel == MAX_CHANNELS)
-  {
-    if(channelWidth < MIN_FRAME_WIDTH)
-      channelSync();
-    else
-      currentChannel = 0;
-  }
-
-  else
-  {
-    if( channelWidth > MAX_CHANNEL_WIDTH)
-      channelSync();
-	else {
-	  rawChannelValue[currentChannel] = channelWidth;
-	  smoothChannels();
-	  currentChannel++;
+	if(currentChannel == MAX_CHANNELS) { // in frame space
+		if(channelWidth < MIN_FRAME_WIDTH)
+			channelSync();
+		else
+			currentChannel = 0;
 	}
 
-  }
+	else {
+		if(channelWidth > MAX_CHANNEL_WIDTH || channelWidth < MIN_CHANNEL_WIDTH)
+			channelSync();
+		else {
+			rawChannelValue[currentChannel] = channelWidth;
+			//smoothChannelValue = smoothChannels();
+			currentChannel++;
+		}
+	}
 
-  channelStartTime = currentTime;
-
+	channelStartTime = currentTime;
 }
 
 
-
-//Method to force synchronization
-void AR6210::channelSync()
-{
-  currentChannel = MAX_CHANNELS;
+/*
+ * Force channel reader to synchronize with PPM pulses
+ */
+void AR6210::channelSync() {
+	currentChannel = MAX_CHANNELS;
+	syncCounter++;
 }
 
 
-
-//Method to run channels through low pass filter
-float AR6210::smoothChannels()
-{
-  return filter::LPF( (float) rawChannelValue[currentChannel], smoothChannelValue[currentChannel],
-		                 smoothFactor[currentChannel]) / scaleFactor[currentChannel];
+/*
+ * Smooth and scale stick inputs
+ */
+float AR6210::smoothChannels() {
+	return filter::LPF( (float) rawChannelValue[currentChannel], smoothChannelValue[currentChannel],
+		                smoothFactor[currentChannel]) / scaleFactor[currentChannel];
 }
 
 
+/*
+ * Process system setup stick commands
+ */
+void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
 
-//Method to process system setup stick commands
-void AR6210::processInitCommands()
-{
-  // calibrate sensors
-  // if(channelValue[THROTTLE] < STICK_MINCHECK && channelValue[YAW] < STICK_MINCHECK)
-  {
-       /// initialize IMU
-		// initialize current / voltage sensor
+	// We will keep polling the stick commands until
+	// the operator initializes the sensors and motors.
+	while(!SYSTEM_ONLINE) {
 
-  }
+		if(!SENSORS_ONLINE) { LED::LEDBlink(RED_LED_PIN, 1, 1000); }
+		if(!MOTORS_ONLINE) { LED::LEDBlink(YELLOW_LED_PIN, 1, 1000); }
+
+		// Initialize the sensors when right stick is in bottom right position, and
+		// left stick is in bottom left position
+		if(smoothChannelValue[THROTTLE] < STICK_MINCHECK && smoothChannelValue[YAW] < STICK_MINCHECK
+			&& smoothChannelValue[PITCH] < STICK_MINCHECK && smoothChannelValue[ROLL] < STICK_MINCHECK) {
+
+			// initialize IMU
+			gyro->init();
+			accel->init();
+			comp->init();
+
+			// initialize current / voltage sensor
+
+
+			if(SENSORS_ONLINE) { LED::turnLEDon(RED_LED_PIN); }
+		}
 
   // arm motors
-  if(smoothChannelValue[PITCH_CHANNEL] < STICK_MINCHECK && smoothChannelValue[ROLL_CHANNEL] < STICK_MINCHECK)
-  {
+  //if(smoothChannelValue[PITCH_CHANNEL] < STICK_MINCHECK && smoothChannelValue[ROLL_CHANNEL] < STICK_MINCHECK)
+  //{
     // arm motors -> flash some LEDs to show craft is waiting for pilot
 	//               arm the motors
-
+    // stop blinking yellow lED
 	// set motors to min value
-	onGround = FALSE;
+	//onGround = FALSE;
 
-  }
+ // }
 
-}
-
-
-//Method to grab receiver stick commands
-void AR6210::getStickCommands(float stickCommands[6])
-{
-  // disable interrupts
-  // read smoothChannelValues
-
-  for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
-    stickCommands[channel] = smoothChannelValue[channel];
-
-  // enable interrupts
+	}
 
 }
 
+
+/*
+ * Safely access shared stick command values
+ */
+void AR6210::getStickCommands(float stickCommands[MAX_CHANNELS]) {
+	uint8_t SaveSREG = SREG;   // save interrupt flag
+	cli();   // disable interrupts
+
+	for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
+		stickCommands[channel] = smoothChannelValue[channel];
+
+	SREG = SaveSREG;   // restore the interrupt flag
+}
+
+
+/*
+ * Convert a raw stick value to a flight angle
+ */
+float AR6210::mapStickCommandToAngle(float stickCommand) {
+	//The min.(max.) pulse length should map to -45(+45) degrees
+	return (0.09*stickCommand - 135.0);
+}
+
+
+/*
+ * Convert a raw stick value to a ON/OFF state
+ */
+bool AR6210::mapStickCommandToBool(float stickCommand) {
+	if(stickCommand < 1500)
+		return FALSE;
+	else
+		return TRUE;
+}
+
+
+/*
+ * Return the sync counter
+ */
+uint32_t AR6210::getSyncCounter() {
+	return syncCounter;
+}
+
+
+/*
+ * Set the smooth factor
+ */
+void AR6210::setSmoothFactor(float factor[MAX_CHANNELS]) {
+	for(int i = 0; i < MAX_CHANNELS; i++) {
+		smoothFactor[i] = factor[i];
+	}
+}
+
+
+/*
+ * Set the scale factor
+ */
+void AR6210::setScaleFactor(float factor[MAX_CHANNELS]) {
+	for(int i = 0; i < MAX_CHANNELS; i++) {
+		scaleFactor[i] = factor[i];
+	}
+}
 
 
