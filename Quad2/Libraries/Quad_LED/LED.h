@@ -13,19 +13,19 @@
 #ifndef LED_h
 #define LED_h
 
-#define RED_LED_PIN
-#define YELLOW_LED_PIN
-#define GREEN_LED_PIN
+#define RED_LED_PIN      10
+#define YELLOW_LED_PIN   11
+#define GREEN_LED_PIN    12
 
-class LED
-{
+class LED {
   public:
-    static void redLEDBlink(int numBlinks, int delay);
-    static void yellowLEDBlink(int numBlinks, int delay);
-    static void greenLEDBlink(int numBlinks, int delay);
+	LED();
+
+    static void LEDBlink(uint8_t pin, uint8_t numBlinks, int delay);
+    static void turnLEDon(uint8_t pin);
+    static void turnLEDoff(uint8_t pin);
 
   private:
-
     /* empty */
 
 };
