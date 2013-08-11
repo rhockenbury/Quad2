@@ -48,6 +48,7 @@ void AR6210::init() {
  */
 void AR6210::readChannels() {
 	// could have rollover problem here
+	Serial.println("reading channels");
 	unsigned int currentTime = micros();
 	unsigned int channelWidth = currentTime - channelStartTime;
 
@@ -76,6 +77,7 @@ void AR6210::readChannels() {
  * Force channel reader to synchronize with PPM pulses
  */
 void AR6210::channelSync() {
+	Serial.println("resyncing");
 	currentChannel = MAX_CHANNELS;
 	syncCounter++;
 }
@@ -97,25 +99,40 @@ void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) 
 
 	// We will keep polling the stick commands until
 	// the operator initializes the sensors and motors.
+	Serial.println(SYSTEM_ONLINE);
 	while(!SYSTEM_ONLINE) {
 
-		if(!SENSORS_ONLINE) { LED::LEDBlink(RED_LED_PIN, 1, 1000); }
-		if(!MOTORS_ONLINE) { LED::LEDBlink(YELLOW_LED_PIN, 1, 1000); }
+		//if(!SENSORS_ONLINE) { LED::LEDBlink(RED_LED_PIN, 1, 1000); }
+		//if(!MOTORS_ONLINE) { LED::LEDBlink(YELLOW_LED_PIN, 1, 1000); }
 
 		// Initialize the sensors when right stick is in bottom right position, and
 		// left stick is in bottom left position
-		if(smoothChannelValue[THROTTLE] < STICK_MINCHECK && smoothChannelValue[YAW] < STICK_MINCHECK
-			&& smoothChannelValue[PITCH] < STICK_MINCHECK && smoothChannelValue[ROLL] < STICK_MINCHECK) {
+
+		// should disable interrupts
+		Serial.println(rawChannelValue[THROTTLE_CHANNEL]);
+		Serial.println(rawChannelValue[ROLL_CHANNEL]);
+		Serial.println(rawChannelValue[PITCH_CHANNEL]);
+		Serial.println(rawChannelValue[YAW_CHANNEL]);
+		Serial.println(rawChannelValue[AUX1_CHANNEL]);
+		Serial.println(rawChannelValue[AUX2_CHANNEL]);
+
+		// change back to smooth
+		if(rawChannelValue[THROTTLE_CHANNEL] < STICK_MINCHECK &&
+				rawChannelValue[YAW_CHANNEL] < STICK_MINCHECK &&
+				rawChannelValue[PITCH_CHANNEL] < STICK_MINCHECK &&
+				rawChannelValue[ROLL_CHANNEL] < STICK_MINCHECK) {
 
 			// initialize IMU
-			gyro->init();
-			accel->init();
-			comp->init();
+			Serial.println("Initializing IMU");
+			//gyro->init();
+			//accel->init();
+			//comp->init();
 
+			Serial.println(SYSTEM_ONLINE);
 			// initialize current / voltage sensor
 
 
-			if(SENSORS_ONLINE) { LED::turnLEDon(RED_LED_PIN); }
+			//if(SENSORS_ONLINE) { LED::turnLEDon(RED_LED_PIN); }
 		}
 
   // arm motors
@@ -142,7 +159,7 @@ void AR6210::getStickCommands(float stickCommands[MAX_CHANNELS]) {
 	cli();   // disable interrupts
 
 	for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
-		stickCommands[channel] = smoothChannelValue[channel];
+		stickCommands[channel] = rawChannelValue[channel]; //smoothChannelValue[channel];
 
 	SREG = SaveSREG;   // restore the interrupt flag
 }

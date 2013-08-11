@@ -52,6 +52,7 @@ void setup() {
   attachInterrupt(0, handleReceiverInterrupt, RISING);
 
   // process stick inputs to bring sensors and ESCs online
+  Serial.println("Entering process init commands");
   receiver.processInitCommands(&gyro, &accel, &comp);
 
   // run system test
@@ -63,6 +64,7 @@ void setup() {
   //comp.init();
 
   delay(200);
+  Serial.println("Starting main loop");
 }
 
 
@@ -78,6 +80,9 @@ void loop() {
 
   if(currentSystemTime < last100HzTime)
 	  last100HzTime = 0;
+
+  if(currentSystemTime < last50HzTime)
+	  last50HzTime = 0;
 
   if(currentSystemTime < last10HzTime)
  	  last10HzTime = 0;
@@ -95,10 +100,12 @@ void loop() {
    */
   if(currentSystemTime >= (last100HzTime + 10))
   {
+	/*
     gyro.getRate(gyroData);
     accel.getValue(accelData);
     comp.getHeading(compData);
     getOrientation(currentFlightAngle, gyroData, accelData, compData);
+	*/
 
     //levelAdjust[ROLL_AXIS] = targetFlightAngle[ROLL_AXIS] - currentFlightAngle[ROLL_AXIS];
     //levelAdjust[PITCH_AXIS] = targetFlightAngle[PITCH_AXIS] - currentFlightAngle[PITCH_AXIS];
@@ -149,7 +156,7 @@ void loop() {
   if(currentSystemTime >= (last10HzTime + 100))
   {
     serialOpen();
-    serialPrint(currentFlightAngle, 3); // must remove extra comma
+    //serialPrint(currentFlightAngle, 3); // must remove extra comma
     serialPrint(stickCommands, 6);
     //serialPrint(battVoltage);
     //serialPrint(battCurrent);
