@@ -5,7 +5,7 @@
  *      Author: Ryler Hockenbury
  *
  * Data fusion and filter algorithm for gyroscope, accelerometer
- * and magnetometer using complementary filter
+ * and magnetometer using complementary filter.
  *
  */
 
@@ -14,17 +14,13 @@
 
 #include "../../Libraries/Quad_Defines/globals.h"
 #include "../../Libraries/Quad_Math/math.h"
-#include <arduino.h>
-
-
-//unsigned int counter = 1;     // measurement counter
+#include <arduino.h> // just for pi i think
 
 //unsigned int previousTime = 0;
 //unsigned int currentTime = 0;
 //float timeStep = 0.0;
 
 float accelAngle[2] = {0.0, 0.0};      // derived angles (roll, pitch) from accelerometer
-
 float compAngle = 0.0;  // derived angle (yaw) from compass
 
 float alpha = 0.98;     // complementary filter weight
@@ -67,7 +63,7 @@ void getOrientation(float flightAngle[3], float gyroData[3], float accelData[3],
   compAngle = atan2( (-compData[Y]*cos_roll + compData[Z]*sin_roll) ,
     (compData[X]*cos_pitch + compData[Y]*sin_pitch*sin_roll + compData[Z]*sin_pitch*cos_roll) )*180/PI;
 
-  if(compAngle < 0.0)  // return yaw in  range 0 to 360
+  if(compAngle < 0.0)  // return yaw in range 0 to 360
  	compAngle += 360.0;
 
    flightAngle[YAW_AXIS] = flightAngle[YAW_AXIS] + gyroData[YAW_AXIS]*0.01;
