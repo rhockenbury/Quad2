@@ -4,7 +4,8 @@
  *  Created on: June 10, 2013
  *      Author: Ryler Hockenbury
  *
- * Create and send a serial block of data.
+ * Create and send a serial frame of data over
+ * USB or 3DR radio.
  *
  */
 
@@ -14,7 +15,9 @@ unsigned int serialCounter = 1;
 
 void serialOpen()
 {
-  Serial.print(serialCounter);
+  Serial.print(millis());
+  serialCounter++;
+
   #ifdef SERIAL_CHART
     Serial.print(",");
   #endif
@@ -22,8 +25,6 @@ void serialOpen()
   #ifdef SERIAL_MONITOR
     Serial.print("\t\t");
   #endif
-
-  serialCounter++;
 }
 
 void serialPrint(float value)
@@ -39,7 +40,7 @@ void serialPrint(float values[], int numValues)
   for(uint8_t count = 0; count < numValues; count++)
   {
     Serial.print(values[count]);
-    if(count < numValues-1) Serial.print(",");
+    if(count < numValues) Serial.print(",");
   }
 
   #endif
@@ -59,5 +60,6 @@ void serialPrint(float values[], int numValues)
 
 void serialClose()
 {
+  // newline character indicates frame is closed
   Serial.print("\n");
 }

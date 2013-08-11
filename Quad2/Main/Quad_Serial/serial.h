@@ -4,7 +4,8 @@
  *  Created on: June 10, 2013
  *      Author: Ryler Hockenbury
  *
- * Create and send a serial block of data.
+ * Create and send a serial frame of data over
+ * USB or 3DR radio.
  *
  */
 
@@ -15,8 +16,6 @@
 
 #define SERIAL_CHART          // format for serial chart and processing ground station
 //#define SERIAL_MONITOR     // format for serial monitor
-
-extern unsigned int serialCounter;
 
 void serialOpen();
 void serialClose();
