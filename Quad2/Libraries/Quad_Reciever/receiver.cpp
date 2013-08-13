@@ -109,6 +109,7 @@ void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) 
 		// left stick is in bottom left position
 
 		// should disable interrupts
+		// hopefully should see these change with stick
 		Serial.println(rawChannelValue[THROTTLE_CHANNEL]);
 		Serial.println(rawChannelValue[ROLL_CHANNEL]);
 		Serial.println(rawChannelValue[PITCH_CHANNEL]);
