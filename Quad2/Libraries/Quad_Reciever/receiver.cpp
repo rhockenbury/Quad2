@@ -49,7 +49,7 @@ void AR6210::init() {
 void AR6210::readChannels() {
 	// could have rollover problem here
 	Serial.println("reading channels");
-	unsigned int currentTime = micros();  // maybe millis()???
+	unsigned int currentTime = micros();  // maybe millis()??? /////
 	unsigned int channelWidth = currentTime - channelStartTime;
 
 	if(currentChannel == MAX_CHANNELS) { // in frame space
