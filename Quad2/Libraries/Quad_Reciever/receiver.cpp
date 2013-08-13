@@ -18,6 +18,7 @@
 
 AR6210::AR6210()
 {
+	// test master change
 	channelStartTime = 0.0;
 	currentChannel = 0;
 	syncCounter = 0;
