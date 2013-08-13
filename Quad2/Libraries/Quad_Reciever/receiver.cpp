@@ -50,6 +50,7 @@ void AR6210::readChannels() {
 	// could have rollover problem here
 	Serial.println("reading channels");
 	unsigned int currentTime = micros();  // maybe millis()??? /////
+	// test branch change 2
 	unsigned int channelWidth = currentTime - channelStartTime;
 
 	if(currentChannel == MAX_CHANNELS) { // in frame space
