@@ -18,28 +18,43 @@
 
 AR6210::AR6210()
 {
-	channelStartTime = 0.0;
-	currentChannel = 0;
-	syncCounter = 0;
+    channelStartTime = 0.0;
+    currentChannel = 0;
+    syncCounter = 0;
 
-	for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
-	{
-		rawChannelValue[channel] = STICK_COMMAND_MID;
-		smoothChannelValue[channel] = STICK_COMMAND_MID;
+    for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
+    {
+        rawChannelValue[channel] = STICK_COMMAND_MID;
+        smoothChannelValue[channel] = STICK_COMMAND_MID;
 
-		// set throttle and aux to min values
+        if(channel == THROTTLE_CHANNEL) {
+        	rawChannelValue[channel] = STICK_COMMAND_MIN;
+        	smoothChannelValue[channel] = STICK_COMMAND_MIN;
+        }
 
-		smoothFactor[channel] = 0.95;
-		scaleFactor[channel] = 0.0;
-	}
+        // we need to set a safe value for aux1 and aux2
+
+        smoothFactor[channel] = 0.95;
+        scaleFactor[channel] = 0.0;
+    }
 }
 
 
 /*
- * Initialize receiver
+ * Initialize receiver interrupts
  */
 void AR6210::init() {
-	vehicleStatus = vehicleStatus | RX_READY; // helper function here
+    vehicleStatus = vehicleStatus | RX_READY;
+    pinMode(PPM_PIN, INPUT);
+    attachInterrupt(0, handleReceiverInterruptHelper, RISING);
+}
+
+
+/*
+ * A workaround to force attachInterrupt to call a class method
+ */
+void handleReceiverInterruptHelper() {
+    receiver.readChannels();
 }
 
 

@@ -38,18 +38,10 @@ uint16_t last100HzTime = 0;
 uint16_t last50HzTime = 0;
 uint16_t last10HzTime = 0;
 
-void handleReceiverInterrupt() {
-  receiver.readChannels();
-}
-
 void setup() {
   Wire.begin();         // initialize I2C bus
   Serial.begin(57600);  // initialize serial link
   receiver.init();      // initialize receiver
-
-  // set up interrupts to read receiver channels
-  pinMode(PPM_PIN, INPUT);
-  attachInterrupt(0, handleReceiverInterrupt, RISING);
 
   // process stick inputs to bring sensors and ESCs online
   Serial.println("Entering process init commands");

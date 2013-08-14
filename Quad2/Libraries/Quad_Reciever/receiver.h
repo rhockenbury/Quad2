@@ -33,6 +33,8 @@
 #define MAX_CHANNEL_WIDTH 2000
 #define MIN_CHANNEL_WIDTH 1000
 
+void handleReciverInterruptHelper();
+
 class AR6210 {
 
  	 public:
