@@ -64,11 +64,10 @@ void handleReceiverInterruptHelper() {
 void AR6210::readChannels() {
 	// could have rollover problem here
 	Serial.println("reading channels");
-	unsigned int currentTime = micros();  // maybe millis()??? /////
-	// test branch change 2
+	unsigned int currentTime = millis();  //micros();
 	unsigned int channelWidth = currentTime - channelStartTime;
 
-	if(currentChannel == MAX_CHANNELS) { // in frame space
+	if(currentChannel == MAX_CHANNELS) { // should be in frame space
 		if(channelWidth < MIN_FRAME_WIDTH)
 			channelSync();
 		else
@@ -76,7 +75,7 @@ void AR6210::readChannels() {
 	}
 
 	else {
-		if(channelWidth > MAX_CHANNEL_WIDTH || channelWidth < MIN_CHANNEL_WIDTH)
+		if(channelWidth > MAX_CHANNEL_WIDTH || channelWidth < MIN_CHANNEL_WIDTH) // glitch filter
 			channelSync();
 		else {
 			rawChannelValue[currentChannel] = channelWidth;
