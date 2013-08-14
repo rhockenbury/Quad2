@@ -13,9 +13,9 @@
 uint32_t ticks = 0;
 
 uint32_t getCurrentTime() {
+// disable interrupts
 
-
-
+// enable interrupts
 }
 
 void initTimer() {
