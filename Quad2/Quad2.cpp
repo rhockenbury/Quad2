@@ -30,13 +30,13 @@ float stickCommands[6] = {1500, 1500, 1500, 1000, 1000, 1000};  //raw throttle, 
 
 bool auxStatus[2] = {ON, OFF}; // controller mode
 
-uint16_t currentSystemTime = 0; // millis() is a 16 bit timer
-uint16_t lastSystemTime = 0;
-uint16_t deltaSystemTime = 0;
+uint32_t currentSystemTime = 0;
+uint32_t lastSystemTime = 0;
+uint32_t deltaSystemTime = 0;
 
-uint16_t last100HzTime = 0;
-uint16_t last50HzTime = 0;
-uint16_t last10HzTime = 0;
+uint32_t last100HzTime = 0;
+uint32_t last50HzTime = 0;
+uint32_t last10HzTime = 0;
 
 void handleReceiverInterrupt() {
   receiver.readChannels();
@@ -74,21 +74,24 @@ void loop() {
   currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
 
-  //Serial.println(currentSystemTime);
-  //Serial.println(last100HzTime);
-  //Serial.println(deltaSystemTime);   // loop time
+  Serial.println("current:" + currentSystemTime);
+  Serial.println("100Hz:" + last100HzTime);
+  Serial.println("50Hz:" + last50HzTime);
+  Serial.println("10Hz:" + last10HzTime);
+  Serial.println("last:" + deltaSystemTime);   // loop time
 
-  if(currentSystemTime < last100HzTime)
-	  last100HzTime = 0;
+  //if(currentSystemTime < last100HzTime)
+	//  last100HzTime = 0;
 
-  if(currentSystemTime < last50HzTime)
-	  last50HzTime = 0;
+  //if(currentSystemTime < last50HzTime)
+	//  last50HzTime = 0;
 
-  if(currentSystemTime < last10HzTime)
- 	  last10HzTime = 0;
+  //if(currentSystemTime < last10HzTime)
+ 	//  last10HzTime = 0;
 
 
   // TODO there is a problem with timer overflow here, and maintaining frequency
+     /// this is fixed, i think, just need testing
 
   // TODO Can i make the assumption that these happend periodically as i would except?
 
@@ -130,7 +133,7 @@ void loop() {
    */
   if(currentSystemTime >= (last50HzTime + 20))
   {
-    receiver.getStickCommands(stickCommands);
+    //receiver.getStickCommands(stickCommands);
     //targetFlightAngle[ROLL_AXIS] = reciever.mapStickCommandToAngle(stickCommands[ROLL]);
     //targetFlightAngle[PITCH_AXIS] = reciever.mapStickCommandToAngle(stickCommands[PITCH]);
 
@@ -157,7 +160,7 @@ void loop() {
   {
     serialOpen();
     //serialPrint(currentFlightAngle, 3); // must remove extra comma
-    serialPrint(stickCommands, 6);
+    //serialPrint(stickCommands, 6);
     //serialPrint(battVoltage);
     //serialPrint(battCurrent);
     serialClose();
