@@ -28,8 +28,8 @@ AR6210::AR6210()
         smoothChannelValue[channel] = STICK_COMMAND_MID;
 
         if(channel == THROTTLE_CHANNEL) {
-        	rawChannelValue[channel] = STICK_COMMAND_MIN;
-        	smoothChannelValue[channel] = STICK_COMMAND_MIN;
+            rawChannelValue[channel] = STICK_COMMAND_MIN;
+            smoothChannelValue[channel] = STICK_COMMAND_MIN;
         }
 
         // we need to set a safe value for aux1 and aux2
@@ -62,29 +62,34 @@ void handleReceiverInterruptHelper() {
  * Read receiver channels and synchronize
  */
 void AR6210::readChannels() {
-	// could have rollover problem here
-	Serial.println("reading channels");
-	unsigned int currentTime = millis();  //micros();
-	unsigned int channelWidth = currentTime - channelStartTime;
+    LED::turnLEDon(13);
+    LED::turnLEDoff(13);
 
-	if(currentChannel == MAX_CHANNELS) { // should be in frame space
-		if(channelWidth < MIN_FRAME_WIDTH)
-			channelSync();
-		else
-			currentChannel = 0;
-	}
+    // overflow issue
+    uint32_t currentTime = millis();  //micros();
+    uint32_t channelWidth = currentTime - channelStartTime;
 
-	else {
-		if(channelWidth > MAX_CHANNEL_WIDTH || channelWidth < MIN_CHANNEL_WIDTH) // glitch filter
-			channelSync();
-		else {
-			rawChannelValue[currentChannel] = channelWidth;
-			//smoothChannelValue = smoothChannels();
-			currentChannel++;
-		}
-	}
+    // synchronize with framespace
+    if(currentChannel == MAX_CHANNELS) {
+        if(channelWidth < MIN_FRAME_WIDTH)
+            channelSync();
+        else
+            currentChannel = 0;
+    }
+    // read channel or resync if glitch encountered
+    else {
+        if(channelWidth > MAX_CHANNEL_WIDTH || channelWidth < MIN_CHANNEL_WIDTH) {
+            channelSync();
+            Serial.println("glitch");
+        }
+        else {
+            rawChannelValue[currentChannel] = channelWidth;
+            //smoothChannelValue = smoothChannels();
+            currentChannel++;
+        }
+    }
 
-	channelStartTime = currentTime;
+    channelStartTime = currentTime;
 }
 
 

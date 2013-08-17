@@ -39,13 +39,13 @@ uint16_t last50HzTime = 0;
 uint16_t last10HzTime = 0;
 
 void setup() {
-  Wire.begin();         // initialize I2C bus
+  //Wire.begin();         // initialize I2C bus
   Serial.begin(57600);  // initialize serial link
   receiver.init();      // initialize receiver
 
   // process stick inputs to bring sensors and ESCs online
-  Serial.println("Entering process init commands");
-  receiver.processInitCommands(&gyro, &accel, &comp);
+  //Serial.println("Entering process init commands");
+  //receiver.processInitCommands(&gyro, &accel, &comp);
 
   // run system test
   // turn on green LED
