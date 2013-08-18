@@ -74,11 +74,11 @@ void loop() {
   currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
 
-  Serial.println("current:" + currentSystemTime);
-  Serial.println("100Hz:" + last100HzTime);
-  Serial.println("50Hz:" + last50HzTime);
-  Serial.println("10Hz:" + last10HzTime);
-  Serial.println("last:" + deltaSystemTime);   // loop time
+  //Serial.println("current:" + currentSystemTime);
+  //Serial.println("100Hz:" + last100HzTime);
+  //Serial.println("50Hz:" + last50HzTime);
+  //Serial.println("10Hz:" + last10HzTime);
+  //Serial.println("last:" + deltaSystemTime);   // loop time
 
   //if(currentSystemTime < last100HzTime)
 	//  last100HzTime = 0;
