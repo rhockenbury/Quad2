@@ -46,7 +46,7 @@ extern uint8_t vehicleStatus;
 #define ROLL_CHANNEL    	1
 #define PITCH_CHANNEL   	2
 #define YAW_CHANNEL     	3
-#define AUX1_CHANNEL     	4
+#define MODE_CHANNEL     	4
 #define AUX2_CHANNEL   		5
 
 #define MICROS  1000000.0  // 1 second = 1*10^6 microseconds

@@ -65,8 +65,8 @@ void AR6210::readChannels() {
     LED::turnLEDon(13);
     LED::turnLEDoff(13);
 
-    // overflow issue
-    uint32_t currentTime = millis();  //micros();
+    // TODO - test with micros()
+    uint32_t currentTime = millis();
     uint32_t channelWidth = currentTime - channelStartTime;
 
     // synchronize with framespace
@@ -116,59 +116,55 @@ float AR6210::smoothChannels() {
  * Process system setup stick commands
  */
 void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
+    // We will keep polling the stick commands until
+    // the operator initializes the sensors and motors.
+    Serial.println(SYSTEM_ONLINE);
+    while(!SYSTEM_ONLINE) {
+        //if(!SENSORS_ONLINE) { LED::LEDBlink(RED_LED_PIN, 1, 1000); }
+        //if(!MOTORS_ONLINE) { LED::LEDBlink(YELLOW_LED_PIN, 1, 1000); }
 
-	// We will keep polling the stick commands until
-	// the operator initializes the sensors and motors.
-	Serial.println(SYSTEM_ONLINE);
-	while(!SYSTEM_ONLINE) {
+        // Initialize the sensors when right stick is in bottom right position, and
+        // left stick is in bottom left position
+        if(rawChannelValue[THROTTLE_CHANNEL] < STICK_MINCHECK &&
+            rawChannelValue[YAW_CHANNEL] < STICK_MINCHECK &&
+            rawChannelValue[PITCH_CHANNEL] < STICK_MINCHECK &&
+            rawChannelValue[ROLL_CHANNEL] < STICK_MINCHECK) {
 
-		//if(!SENSORS_ONLINE) { LED::LEDBlink(RED_LED_PIN, 1, 1000); }
-		//if(!MOTORS_ONLINE) { LED::LEDBlink(YELLOW_LED_PIN, 1, 1000); }
+            // initialize IMU
+            Serial.println("Initializing IMU");
+            //gyro->init();   // zero instead of initing
+            //accel->init();
+            //comp->init();
 
-		// Initialize the sensors when right stick is in bottom right position, and
-		// left stick is in bottom left position
-
-		// should disable interrupts
-		// hopefully should see these change with stick
-		Serial.println(rawChannelValue[THROTTLE_CHANNEL]);
-		Serial.println(rawChannelValue[ROLL_CHANNEL]);
-		Serial.println(rawChannelValue[PITCH_CHANNEL]);
-		Serial.println(rawChannelValue[YAW_CHANNEL]);
-		Serial.println(rawChannelValue[AUX1_CHANNEL]);
-		Serial.println(rawChannelValue[AUX2_CHANNEL]);
-
-		// change back to smooth
-		if(rawChannelValue[THROTTLE_CHANNEL] < STICK_MINCHECK &&
-				rawChannelValue[YAW_CHANNEL] < STICK_MINCHECK &&
-				rawChannelValue[PITCH_CHANNEL] < STICK_MINCHECK &&
-				rawChannelValue[ROLL_CHANNEL] < STICK_MINCHECK) {
-
-			// initialize IMU
-			Serial.println("Initializing IMU");
-			//gyro->init();
-			//accel->init();
-			//comp->init();
-
-			Serial.println(SYSTEM_ONLINE);
-			// initialize current / voltage sensor
+            Serial.println(SYSTEM_ONLINE);
+            // initialize current / voltage sensor
 
 
-			//if(SENSORS_ONLINE) { LED::turnLEDon(RED_LED_PIN); }
-		}
+            //if(SENSORS_ONLINE) { LED::turnLEDon(RED_LED_PIN); }
+        }
 
-  // arm motors
-  //if(smoothChannelValue[PITCH_CHANNEL] < STICK_MINCHECK && smoothChannelValue[ROLL_CHANNEL] < STICK_MINCHECK)
-  //{
-    // arm motors -> flash some LEDs to show craft is waiting for pilot
-	//               arm the motors
-    // stop blinking yellow lED
-	// set motors to min value
-	//onGround = FALSE;
+        /*
+        // Arm the motors when right stick is in bottom left position, and
+        // left stick is in bottom right position
+        if(rawChannelValue[THROTTLE_CHANNEL] < STICK_MINCHECK &&
+              rawChannelValue[YAW_CHANNEL] > STICK_MAXCHECK &&
+              rawChannelValue[PITCH_CHANNEL] < STICK_MINCHECK &&
+              rawChannelValue[ROLL_CHANNEL] > STICK_MAXCHECK &&
+              SENSORS_ONLINE) {
 
- // }
+            // arm motors ->
+        	// wait for beeps
+        	// set motors to min values
 
-	}
+        	if(MOTORS_ONLINE) { LED::turnLEDon(YELLOW_LED_PIN); }
 
+            inFlight = TRUE;
+        }
+        */
+
+    }
+
+    //TODO - should return value
 }
 
 
@@ -176,22 +172,22 @@ void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) 
  * Safely access shared stick command values
  */
 void AR6210::getStickCommands(float stickCommands[MAX_CHANNELS]) {
-	uint8_t SaveSREG = SREG;   // save interrupt flag
-	cli();   // disable interrupts
+    uint8_t oldSREG = SREG;   // save interrupt flag
+    cli();   // disable interrupts
 
-	for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
-		stickCommands[channel] = rawChannelValue[channel]; //smoothChannelValue[channel];
+    for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
+	    stickCommands[channel] = rawChannelValue[channel]; //smoothChannelValue[channel];
 
-	SREG = SaveSREG;   // restore the interrupt flag
+    SREG = oldSREG;   // restore the interrupt flag
 }
 
 
 /*
  * Convert a raw stick value to a flight angle
+ * The min.(max.) pulse length should map to -45(+45) degrees
  */
 float AR6210::mapStickCommandToAngle(float stickCommand) {
-	//The min.(max.) pulse length should map to -45(+45) degrees
-	return (0.09*stickCommand - 135.0);
+    return (0.09*stickCommand - 135.0);
 }
 
 
@@ -199,10 +195,10 @@ float AR6210::mapStickCommandToAngle(float stickCommand) {
  * Convert a raw stick value to a ON/OFF state
  */
 bool AR6210::mapStickCommandToBool(float stickCommand) {
-	if(stickCommand < 1500)
-		return FALSE;
-	else
-		return TRUE;
+    if(stickCommand < 1500)
+        return FALSE;
+    else
+        return TRUE;
 }
 
 
@@ -210,7 +206,7 @@ bool AR6210::mapStickCommandToBool(float stickCommand) {
  * Return the sync counter
  */
 uint32_t AR6210::getSyncCounter() {
-	return syncCounter;
+    return syncCounter;
 }
 
 
@@ -218,9 +214,9 @@ uint32_t AR6210::getSyncCounter() {
  * Set the smooth factor
  */
 void AR6210::setSmoothFactor(float factor[MAX_CHANNELS]) {
-	for(int i = 0; i < MAX_CHANNELS; i++) {
-		smoothFactor[i] = factor[i];
-	}
+    for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++) {
+	    smoothFactor[channel] = factor[channel];
+    }
 }
 
 
@@ -228,9 +224,9 @@ void AR6210::setSmoothFactor(float factor[MAX_CHANNELS]) {
  * Set the scale factor
  */
 void AR6210::setScaleFactor(float factor[MAX_CHANNELS]) {
-	for(int i = 0; i < MAX_CHANNELS; i++) {
-		scaleFactor[i] = factor[i];
-	}
+    for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++) {
+        scaleFactor[channel] = factor[channel];
+    }
 }
 
 

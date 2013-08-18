@@ -11,7 +11,7 @@
 #include "Quad2.h"
 
 uint8_t vehicleStatus = 0x0;
-bool onGround = TRUE;
+bool inFlight = FALSE;
 
 ITG3200 gyro;
 ADXL345 accel;
@@ -63,6 +63,8 @@ void setup() {
 // TODO config file
 
 void loop() {
+
+	//TODO - test with micros()
   currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
 
@@ -90,8 +92,7 @@ void loop() {
    * Poll IMU sensors, calculate orientation, update controller and command motors.
    *
    */
-  if(currentSystemTime >= (last100HzTime + 10))
-  {
+  if(currentSystemTime >= (last100HzTime + 10)) {
 	/*
     gyro.getRate(gyroData);
     accel.getValue(accelData);
@@ -120,9 +121,9 @@ void loop() {
    * Read and sanitize commands from radio, and monitor battery.
    *
    */
-  if(currentSystemTime >= (last50HzTime + 20))
-  {
-    receiver.getStickCommands(stickCommands);
+  if(currentSystemTime >= (last50HzTime + 20)) {
+    receiver.getStickCommands(stickCommands);  //process radio commands
+
     //targetFlightAngle[ROLL_AXIS] = reciever.mapStickCommandToAngle(stickCommands[ROLL]);
     //targetFlightAngle[PITCH_AXIS] = reciever.mapStickCommandToAngle(stickCommands[PITCH]);
 
