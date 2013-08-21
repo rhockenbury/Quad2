@@ -11,19 +11,19 @@
 
 
 #include <Wire.h>
-#include "Libraries/Quad_Defines/globals.h"
+
 
 #include "Main/Quad_FusionFilter/compFilter.h"
-//#include "Main/Quad_FusionFilter/DCMFilter.h"
-#include "Main/Quad_FlightControl/PID.h"
+#include "Main/Quad_FlightCommand/flightCommand.h"
 
+#include "Libraries/Quad_Defines/globals.h"
+#include "Libraries/Quad_PID/PID.h"
 #include "Libraries/Quad_Gyroscope/ITG3200.h"
 #include "Libraries/Quad_Accelerometer/ADXL345.h"
 #include "Libraries/Quad_Compass/HMC5883L.h"
-
 #include "Libraries/Quad_Reciever/receiver.h"
-
-#include "Main/Quad_Serial/serial.h"
+#include "Libraries/Quad_Serial/serial.h"
+#include "Libraries/Quad_LED/LED.h"
 
 
 //end of add your includes here
