@@ -37,7 +37,7 @@ PID::PID() {
  */
 double PID::updatePid(double input, double setPoint) {
 
-	if(!inAuto) return 0;
+	if(!inAuto) return 0;   // should return value
 
 	// compute error variables
 	double error = setPoint - input;
