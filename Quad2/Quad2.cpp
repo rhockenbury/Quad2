@@ -7,7 +7,6 @@
  * Quad2
  */
 
-// Do not remove the include below
 #include "Quad2.h"
 
 uint8_t vehicleStatus = 0x0;
@@ -24,11 +23,11 @@ float accelData[3] = {0.0, 0.0, 0.0};
 float compData[3] = {0.0, 0.0, 0.0};
 
 float currentFlightAngle[3] = {0.0, 0.0, 0.0}; // roll, pitch, yaw
-float targetFlightAngle[3] = {0.0, 0.0}; // roll and pitch
+float targetFlightAngle[2] = {0.0, 0.0}; // roll and pitch
 
-float stickCommands[6] = {1500, 1500, 1500, 1000, 1000, 1000};  //raw throttle, roll, pitch, yaw
-
-bool auxStatus[2] = {ON, OFF}; // controller mode
+float stickCommands[6] = {STICK_COMMAND_MID, STICK_COMMAND_MID,  // roll, pitch, throttle, yaw, mode, aux1
+		                  STICK_COMMAND_MIN, STICK_COMMAND_MID,
+		                  STICK_COMMAND_MAX, STICK_COMMAND_MIN };
 
 uint16_t currentSystemTime = 0; // millis() is a 16 bit timer
 uint16_t lastSystemTime = 0;
@@ -38,14 +37,25 @@ uint16_t last100HzTime = 0;
 uint16_t last50HzTime = 0;
 uint16_t last10HzTime = 0;
 
+/*
+ * Helper routine to call radio ISR
+ */
+void handleReceiverInterruptHelper() {
+    receiver.readChannels();
+}
+
 void setup() {
   //Wire.begin();         // initialize I2C bus
-  Serial.begin(57600);  // initialize serial link
-  receiver.init();      // initialize receiver
+  Serial.begin(115200);  // initialize serial link 57600
+  //receiver.init();      // initialize receiver
 
+  Serial.println("starting now");
   // process stick inputs to bring sensors and ESCs online
   //Serial.println("Entering process init commands");
   //receiver.processInitCommands(&gyro, &accel, &comp);
+
+  pinMode(PPM_PIN, INPUT);
+  attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
 
   // run system test
   // turn on green LED
@@ -59,15 +69,18 @@ void setup() {
   Serial.println("Starting main loop");
 }
 
-
-// TODO config file
-
 void loop() {
 
 	//TODO - test with micros()
   currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
 
+
+
+  	//digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
+  	//delay(200);               // wait for a second
+  	//digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
+  	//delay(200);
   //Serial.println(currentSystemTime);
   //Serial.println(last100HzTime);
   //Serial.println(deltaSystemTime);   // loop time
@@ -100,6 +113,8 @@ void loop() {
     getOrientation(currentFlightAngle, gyroData, accelData, compData);
 	*/
 
+	// processFlightControl(targetFlightAngle, currentFlightAngle, motors, controller    );
+
     //levelAdjust[ROLL_AXIS] = targetFlightAngle[ROLL_AXIS] - currentFlightAngle[ROLL_AXIS];
     //levelAdjust[PITCH_AXIS] = targetFlightAngle[PITCH_AXIS] - currentFlightAngle[PITCH_AXIS];
 
@@ -118,21 +133,12 @@ void loop() {
 
 
   /* 50 Hz Tasks
-   * Read and sanitize commands from radio, and monitor battery.
+   * Read and process commands from radio, and monitor battery.
    *
    */
   if(currentSystemTime >= (last50HzTime + 20)) {
-    receiver.getStickCommands(stickCommands);  //process radio commands
-
-    //targetFlightAngle[ROLL_AXIS] = reciever.mapStickCommandToAngle(stickCommands[ROLL]);
-    //targetFlightAngle[PITCH_AXIS] = reciever.mapStickCommandToAngle(stickCommands[PITCH]);
-
-    //bool auxStatus[AUX1] = reciever.mapStickCommandToBool(stickCommands[AUX1]);
-    //bool auxStatus[AUX2] = reciever.mapStickCommandToBool(stickCommands[AUX2]);
-
-    //controller[ROLL_AXIS].setMode(aux1Status[AUX1]);
-    //controller[PITCH_AXIS].setMode(aux1Status[AUX1]);
-
+    receiver.getStickCommands(stickCommands);
+    processStickCommands(stickCommands, targetFlightAngle);
 
     //TODO - monitor battery health
 
@@ -148,9 +154,11 @@ void loop() {
    */
   if(currentSystemTime >= (last10HzTime + 100))
   {
+	//Serial.println("in 100 Hz loop");
     serialOpen();
     //serialPrint(currentFlightAngle, 3); // must remove extra comma
     serialPrint(stickCommands, 6);
+    serialPrint(targetFlightAngle, 2);
     //serialPrint(battVoltage);
     //serialPrint(battCurrent);
     serialClose();
