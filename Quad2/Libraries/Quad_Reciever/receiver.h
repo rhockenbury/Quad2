@@ -15,10 +15,11 @@
 #include "../Quad_Gyroscope/ITG3200.h"
 #include "../Quad_Accelerometer/ADXL345.h"
 #include "../Quad_Compass/HMC5883L.h"
+#include "../Main/Quad_Conf/conf.h"
 
 #define PPM_PIN 2    // digital pin 2 to support external interrupts (Arduino UNO)
 
-#define MAX_CHANNELS 6
+#define MAX_CHANNELS RADIO_NUM_CHANNELS
 
 #define STICK_COMMAND_MIN 1000   // 1ms pulse length
 #define STICK_COMMAND_MID 1500   // 1.5ms pulse length
@@ -29,34 +30,29 @@
 
 #define STICK_MINTHROTTLE (STICK_COMMAND_MIN + 100)
 
-#define MIN_FRAME_WIDTH   (20000 - MAX_CHANNELS*2200)
-#define MAX_CHANNEL_WIDTH 2200
-#define MIN_CHANNEL_WIDTH 800
-
-void handleReciverInterruptHelper();
+#define MIN_FRAME_WIDTH (20000 - MAX_CHANNELS*2200)
+#define MAX_CHANNEL_WIDTH (STICK_COMMAND_MAX + 100)
+#define MIN_CHANNEL_WIDTH (STICK_COMMAND_MIN - 100)
 
 class AR6210 {
 
- 	 public:
-    	AR6210();
-    	void init();
-    	void readChannels(); // interrupt driven on rising edge
-    	void channelSync();
-    	float smoothChannels();
-    	void processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp); // TODO add motors for arming
-    	void getStickCommands(float stickCommands[MAX_CHANNELS]); // every 20 ms
-    	float mapStickCommandToAngle(float stickCommand);
-    	bool mapStickCommandToBool(float stickCommand);
-
-    	uint32_t getSyncCounter();
+    public:
+        AR6210();
+        void init();
+        void readChannels();
+        inline void channelSync();
+        uint32_t getSyncCounter();
+    	void getStickCommands(float stickCommands[MAX_CHANNELS]);
+    	static float mapStickCommandToAngle(float stickCommand);
+    	static bool mapStickCommandToBool(float stickCommand);
+    	inline float smoothChannels(uint16_t channelValue, uint8_t channelNum);
     	void setSmoothFactor(float factor[MAX_CHANNELS]);
     	void setScaleFactor(float factor[MAX_CHANNELS]);
 
  	 private:
-    	unsigned int channelStartTime;
+    	uint32_t channelStartTime;
     	uint8_t currentChannel;
-    	uint32_t syncCounter;
-
+    	volatile uint32_t syncCounter;
     	volatile int16_t rawChannelValue[MAX_CHANNELS]; // may not need volatile here
     	volatile float smoothChannelValue[MAX_CHANNELS];
     	float smoothFactor[MAX_CHANNELS];
