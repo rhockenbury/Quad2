@@ -13,6 +13,8 @@
 #ifndef LED_h
 #define LED_h
 
+#include <arduino.h>
+
 #define RED_LED_PIN      10
 #define YELLOW_LED_PIN   11
 #define GREEN_LED_PIN    12
