@@ -8,7 +8,6 @@
 #include "flightCommand.h"
 #include "../../Libraries/Quad_Defines/globals.h"
 #include "../../Libraries/Quad_Reciever/receiver.h"
-#include "../../Libraries/Quad_PID/PID.h"
 
 bool controlMode = 0;
 bool auxMode = 0;
@@ -18,7 +17,7 @@ bool motorArmed  = false;
 /*
  * Distribute stick commands to system components
  */
-void processStickCommands(float stickCommands[], float targetFlightAngle[]) {
+void processStickCommands(float stickCommands[], float targetFlightAngle[], PID controller[]) {
 	// process zero throttle stick commands
     if(stickCommands[THROTTLE_CHANNEL] < STICK_MINCHECK) {
         processZeroThrottleCommands(stickCommands);
@@ -41,16 +40,18 @@ void processStickCommands(float stickCommands[], float targetFlightAngle[]) {
 /*
  * Process system setup and teardown commands
  */
-void processZeroThrottleCommands(float stickCommands) {
+void processZeroThrottleCommands(float stickCommands[]) {
 
 	// zero sensors
 	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK && stickCommands[ROLL_CHANNEL] < STICK_MINCHECK) {
         Serial.println("Info: Zeroing sensors");
+        // zero sensors here
 	}
 
 	// arm motors
 	if(stickCommands[YAW_CHANNEL] < STICK_MINCHECK && SENSORS_ONLINE && motorArmed == false) {
         Serial.println("Warning: Arming motors");
+        // arm motors here
         motorArmed = true;
         inFlight = true;
 	}
@@ -58,17 +59,15 @@ void processZeroThrottleCommands(float stickCommands) {
 	// disarm motors
 	if(stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && motorArmed == ON) {
         Serial.println("Warning: Disarming motors");
+        // disarm motors here
         motorArmed = false;
         inFlight = false;
-        // set motors to min throttle
 	}
 }
 
 
 
 /*
- * Process system setup stick commands
- */
 void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
     // We will keep polling the stick commands until
     // the operator initializes the sensors and motors.
@@ -97,7 +96,6 @@ void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) 
             //if(SENSORS_ONLINE) { LED::turnLEDon(RED_LED_PIN); }
         }
 
-        /*
         // Arm the motors when right stick is in bottom left position, and
         // left stick is in bottom right position
         if(rawChannelValue[THROTTLE_CHANNEL] < STICK_MINCHECK &&
@@ -114,11 +112,11 @@ void AR6210::processInitCommands(ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) 
 
             inFlight = TRUE;
         }
-        */
+
 
     }
 
-    //TODO - should return value
-}
 
+}
+*/
 

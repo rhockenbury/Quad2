@@ -10,7 +10,7 @@
 #include "Quad2.h"
 
 uint8_t vehicleStatus = 0x0;
-bool inFlight = FALSE;
+bool inFlight = false;
 
 ITG3200 gyro;
 ADXL345 accel;
@@ -49,31 +49,26 @@ void setup() {
   Serial.begin(115200);  // initialize serial link 57600
   //receiver.init();      // initialize receiver
 
-  Serial.println("starting now");
-  // process stick inputs to bring sensors and ESCs online
-  //Serial.println("Entering process init commands");
-  //receiver.processInitCommands(&gyro, &accel, &comp);
-
+  Serial.println("INFO: attaching receiver interrupts");
   pinMode(PPM_PIN, INPUT);
   attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
+  delay(200);
 
-  // run system test
-  // turn on green LED
-
-  //Serial.println("Initializing Sensors");
+  //Serial.println("INFO: initializing sensors");
   //gyro.init();
   //accel.init();
   //comp.init();
 
+  // run system test
+  // turn on green LED
   delay(200);
-  Serial.println("Starting main loop");
+  Serial.println("INFO: entering flight processing loop");
 }
 
 void loop() {
-
-	//TODO - test with micros()
   currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
+  lastSystemTime = currentSystemTime;
 
   //Serial.println("current:" + currentSystemTime);
   //Serial.println("100Hz:" + last100HzTime);
@@ -136,7 +131,7 @@ void loop() {
    */
   if(currentSystemTime >= (last50HzTime + 20)) {
     receiver.getStickCommands(stickCommands);
-    processStickCommands(stickCommands, targetFlightAngle);
+    processStickCommands(stickCommands, targetFlightAngle, controller);
 
     //TODO - monitor battery health
 
@@ -150,9 +145,7 @@ void loop() {
    * Send serial stream to ground station.
    *
    */
-  if(currentSystemTime >= (last10HzTime + 100))
-  {
-	//Serial.println("in 100 Hz loop");
+  if(currentSystemTime >= (last10HzTime + 100)) {
     serialOpen();
     //serialPrint(currentFlightAngle, 3); // must remove extra comma
 
@@ -173,9 +166,6 @@ void loop() {
 
     last10HzTime = currentSystemTime;
   }
-
-  lastSystemTime = currentSystemTime;
-
 }
 
 

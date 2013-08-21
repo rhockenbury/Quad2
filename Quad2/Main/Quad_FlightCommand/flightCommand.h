@@ -5,11 +5,13 @@
  *      Author: Ryler Hockenbury
  */
 
-#ifndef FLIGHTCOMMAND_H_
-#define FLIGHTCOMMAND_H_
+#ifndef flightCommand_h
+#define flightCommand_h
 
-void processStickCommands(float stickCommands[], float targetFlightAngle[]);
+#include "../../Libraries/Quad_PID/PID.h"
+
+void processStickCommands(float stickCommands[], float targetFlightAngle[], PID controller[]);
 
 void processZeroThrottleCommands(float stickCommands[]);
 
-#endif /* FLIGHTCOMMAND_H_ */
+#endif /* flightCommand_h */

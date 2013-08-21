@@ -138,7 +138,7 @@ float AR6210::mapStickCommandToAngle(float stickCommand) {
 bool AR6210::mapStickCommandToBool(float stickCommand) {
     if(stickCommand < 1300)
         return FALSE;
-    else if(stickCommands > 1700)
+    else if(stickCommand > 1700)
         return TRUE;
     else {
     	Serial.println("Warning: Stick command cannot be mapped to boolean type");

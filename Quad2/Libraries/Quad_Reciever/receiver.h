@@ -15,7 +15,7 @@
 #include "../Quad_Gyroscope/ITG3200.h"
 #include "../Quad_Accelerometer/ADXL345.h"
 #include "../Quad_Compass/HMC5883L.h"
-#include "../Main/Quad_Conf/conf.h"
+#include "../../Main/Quad_Conf/conf.h"
 
 #define PPM_PIN 2    // digital pin 2 to support external interrupts (Arduino UNO)
 
