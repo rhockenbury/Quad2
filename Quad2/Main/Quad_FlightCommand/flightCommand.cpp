@@ -33,7 +33,7 @@ void processStickCommands(float stickCommands[], float targetFlightAngle[], PID 
 	controller[PITCH_AXIS].setMode(controlMode);
 
 	// update aux channel (currently unused)
-	auxMode = AR6210::mapStickCommandToBool(stickCommands[AUX1_CHANNEL]);
+	//auxMode = AR6210::mapStickCommandToBool(stickCommands[AUX1_CHANNEL]);
 }
 
 
@@ -43,9 +43,14 @@ void processStickCommands(float stickCommands[], float targetFlightAngle[], PID 
 void processZeroThrottleCommands(float stickCommands[]) {
 
 	// zero sensors
-	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK && stickCommands[ROLL_CHANNEL] < STICK_MINCHECK) {
+	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK &&
+			stickCommands[ROLL_CHANNEL] < STICK_MINCHECK &&
+			stickCommands[YAW_CHANNEL] > STICK_MAXCHECK &&
+			!SENSORS_ONLINE) {
         Serial.println("Info: Zeroing sensors");
         // zero sensors here
+
+        vehicleStatus = 0x7;
 	}
 
 	// arm motors
