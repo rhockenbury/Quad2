@@ -54,7 +54,7 @@ int battMonitor::getRawBattCurrent()
 // Method to convert raw voltage data to volts and check voltage level
 float battMonitor::getProcessedBattVoltage()
 {
-  Vprocessed = Vraw / I_SENSITIVITY;
+  Vprocessed = getRawBattVoltage() / I_SENSITIVITY;
 
   if(Vprocessed <= V_EMPTY)
   {
@@ -70,7 +70,7 @@ float battMonitor::getProcessedBattVoltage()
 // Method to convert raw current data to amps and monitor min and max current
 float battMonitor::getProcessedBattCurrent()
 {
-  Iprocessed = Iraw / I_SENSITIVITY;
+  Iprocessed = getRawBattCurrent() / I_SENSITIVITY;
 
   if(Iprocessed > Imax) // update max current
 	Imax = Iprocessed;
