@@ -35,16 +35,16 @@ PID::PID() {
 /*
  * Return new controller value
  */
-double PID::updatePid(double input, double setPoint) {
+float PID::updatePid(float input, float setPoint) {
 
 	if(!inAuto) return 0;   // should return value
 
 	// compute error variables
-	double error = setPoint - input;
+	float error = setPoint - input;
 	iTerm += (ki * error);
 	if(iTerm> outMax) iTerm= outMax;
 	else if(iTerm< outMin) iTerm= outMin;
-	double dInput = (input - lastInput);
+	float dInput = (input - lastInput);
 
 	// compute output
 	output = kp * error + iTerm - kd * dInput;
@@ -59,9 +59,9 @@ double PID::updatePid(double input, double setPoint) {
 /*
  * Set controller constants
  */
-void PID::setTunings(double Kp, double Ki, double Kd) {
+void PID::setTunings(float Kp, float Ki, float Kd) {
 
-	double SampleTimeInSec = ((double)sampleTime)/1000;
+	float SampleTimeInSec = ((float)sampleTime)/1000;
 	kp = Kp;
 	ki = Ki * SampleTimeInSec;
 	kd = Kd / SampleTimeInSec;
@@ -71,14 +71,14 @@ void PID::setTunings(double Kp, double Ki, double Kd) {
 /*
  * Set sample period, adjusting time dependent parameters
  */
-void PID::setSampleTime(int newSampleTime) {
+void PID::setSampleTime(uint32_t newSampleTime) {
 
 	if(sampleTime > 0)
 	   {
-	      double ratio  = (double)newSampleTime / (double)sampleTime;
+	      float ratio  = (float)newSampleTime / (float)sampleTime;
 	      ki *= ratio;
 	      kd /= ratio;
-	      sampleTime = (unsigned long)newSampleTime;
+	      sampleTime = (uint32_t)newSampleTime;
 	   }
 }
 
@@ -86,7 +86,7 @@ void PID::setSampleTime(int newSampleTime) {
 /*
  * Set min and max controller outputs
  */
-void PID::setOutputLimits(double Min, double Max) {
+void PID::setOutputLimits(float Min, float Max) {
    if(Min > Max) return;
    outMin = Min;
    outMax = Max;
@@ -112,6 +112,13 @@ void PID::setMode(bool Mode) {
     inAuto = newAuto;
 }
 
+
+/*
+ * Return the current mode
+ */
+bool PID::getMode() {
+	return inAuto;
+}
 
 /*
  *

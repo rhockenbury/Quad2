@@ -15,15 +15,18 @@
 #define MANUAL 0
 #define AUTOMATIC 1
 
+#include <arduino.h>
+
 class PID {
 
 	public:
 		PID();
-		void setTunings(double kp, double ki, double kd);
-		double updatePid(double input, double setPoint);
-		void setSampleTime(int newSampleTime);
-		void setOutputLimits(double newMin, double newMax);
+		void setTunings(float kp, float ki, float kd);
+		float updatePid(float input, float setPoint);
+		void setSampleTime(uint32_t newSampleTime);
+		void setOutputLimits(float newMin, float newMax);
 		void setMode(bool mode);
+		bool getMode();
 		void initializeMode();
 
 	private:
@@ -33,7 +36,7 @@ class PID {
 		float kp, ki, kd;
 		float outMax, outMin;
 		bool inAuto;
-		unsigned long sampleTime;
+		uint32_t sampleTime;
 };
 
 #endif /* pid_h */
