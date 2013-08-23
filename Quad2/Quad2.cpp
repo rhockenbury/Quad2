@@ -17,6 +17,7 @@ ADXL345 accel;
 HMC5883L comp;
 AR6210 receiver;
 PID controller[2]; // pitch and roll controllers
+Motors motors;
 
 float gyroData[3] = {0.0, 0.0, 0.0};  // x, y and z axis
 float accelData[3] = {0.0, 0.0, 0.0};
@@ -58,6 +59,10 @@ void setup() {
   //gyro.init();
   //accel.init();
   //comp.init();
+
+
+  //Serial.println("INFO: attaching motors");
+  //motors.init();
 
   // run system test
   // turn on green LED
@@ -107,6 +112,7 @@ void loop() {
 	*/
 
 	// processFlightControl(targetFlightAngle, currentFlightAngle, motors, controller    );
+    // processMotorCommands(motors);
 
     //levelAdjust[ROLL_AXIS] = targetFlightAngle[ROLL_AXIS] - currentFlightAngle[ROLL_AXIS];
     //levelAdjust[PITCH_AXIS] = targetFlightAngle[PITCH_AXIS] - currentFlightAngle[PITCH_AXIS];
@@ -117,7 +123,12 @@ void loop() {
     //motor.axisCommand[THROTTLE] = stickCommands[THROTTLE];
     //motor.axisCommand[YAW_AXIS] = stickCommands[YAW];
 
-    //motor.command[MOTOR1] = throttle + roll + pitch + yaw commands;
+    //motor.commandMotors(MOTOR1, command);// = throttle + roll + pitch + yaw commands;
+
+	//motor1Power = throttle + pitchOffset + yawOffset;
+	//motor2Power = throttle + rollOffset  - yawOffsett;
+	//motor3Power = throttle - pitchOffset + yawOffsett;
+	//motor4Power = throttle - rollOffset  - yawOffsett;
 
     last100HzTime = currentSystemTime;
   }
@@ -134,6 +145,9 @@ void loop() {
     processStickCommands(stickCommands, targetFlightAngle, controller);
 
     //TODO - monitor battery health
+    //get voltage
+    //get remaining mah
+    //get remaining time
 
     last50HzTime = currentSystemTime;
   }
@@ -151,11 +165,14 @@ void loop() {
 
     serialPrint(stickCommands, 6);
     serialPrint(targetFlightAngle, 2);
+    serialPrint((float)receiver.getSyncCounter());
+    serialPrint(controller[ROLL_AXIS].getMode());
+    serialPrint(controller[PITCH_AXIS].getMode());
 
     //serialPrint(battVoltage);
     //serialPrint(battCurrent);
     serialClose();
-
+;
 
 
     // TODO -  check for and process serial input
