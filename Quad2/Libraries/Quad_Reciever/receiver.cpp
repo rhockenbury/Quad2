@@ -13,7 +13,6 @@
 #include "receiver.h"
 #include "../Quad_Math/math.h"
 #include "../Quad_Defines/globals.h"
-#include "../Quad_LED/LED.h"
 
 
 AR6210::AR6210()
@@ -33,11 +32,11 @@ AR6210::AR6210()
         }
 
         if(channel == MODE_CHANNEL) {
-        	rawChannelValue[channel] = ON;
+        	rawChannelValue[channel] = STICK_COMMAND_MAX;
         }
 
         if(channel == AUX1_CHANNEL) {
-        	rawChannelValue[channel] = OFF;
+        	rawChannelValue[channel] = STICK_COMMAND_MIN;
         }
 
         smoothFactor[channel] = RADIO_SMOOTH_FACTOR;  // configure in conf.h
@@ -116,8 +115,12 @@ void AR6210::getStickCommands(float stickCommands[MAX_CHANNELS]) {
     SREG = oldSREG;   // restore the interrupt flag
 
     for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++) {
-        if(channel != MODE_CHANNEL & channel != AUX1_CHANNEL)  // don't smooth boolean channel types
-    	    stickCommands[channel] = smoothChannels(stickCommands[channel], channel);
+    	// don't smooth boolean channel types
+        if(channel != MODE_CHANNEL & channel != AUX1_CHANNEL) {
+            smoothChannelValue[channel] = smoothChannels(stickCommands[channel], channel);
+            stickCommands[channel] = smoothChannelValue[channel];
+        }
+
     }
 }
 
@@ -167,6 +170,7 @@ uint32_t AR6210::getSyncCounter() {
 void AR6210::setSmoothFactor(float factor[MAX_CHANNELS]) {
     for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++) {
 	    smoothFactor[channel] = factor[channel];
+	    // guard mode and aux
 	    smoothChannelValue[channel] = 0.0;  // clear weighted history
     }
 }
