@@ -54,7 +54,7 @@ class AR6210 {
     	uint8_t currentChannel;
     	volatile uint32_t syncCounter;
     	volatile int16_t rawChannelValue[MAX_CHANNELS]; // may not need volatile here
-    	volatile float smoothChannelValue[MAX_CHANNELS];
+    	float smoothChannelValue[MAX_CHANNELS];
     	float smoothFactor[MAX_CHANNELS];
     	float scaleFactor[MAX_CHANNELS];
 };
