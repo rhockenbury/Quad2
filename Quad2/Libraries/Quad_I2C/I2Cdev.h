@@ -16,7 +16,7 @@
 #include <inttypes.h>
 #include <Wire.h>
         
-//#define I2CDEV_SERIAL_DEBUG
+//#define I2CDEV_SERIAL_DEBUG - move to conf
 
 class I2Cdev
 {

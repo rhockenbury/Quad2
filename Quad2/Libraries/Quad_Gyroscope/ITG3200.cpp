@@ -38,15 +38,17 @@ void ITG3200::init()
   if( test() ) // if sensor responds to ID test
   {
     gyroStatus = ON;
-	vehicleStatus = vehicleStatus | GYRO_READY;
+    setFullRange();
+    setSampleRate(0x9);
+    setLPF(ITG3200_DLPF_188);
+    setClockSource(ITG3200_CLK_SEL_XGYRO);
+  }
+  else {
+	gyroStatus = OFF;
+	Serial.println("WARNING: gyro not responding to init");
   }
 
-  setFullRange(); 
-  setSampleRate(0x9); 
-  setLPF(ITG3200_DLPF_188); 
-  setClockSource(ITG3200_CLK_SEL_XGYRO); 
-
-  setOffset(); 
+  //setOffset();
 }
 
 
@@ -127,6 +129,8 @@ void ITG3200::setOffset()
   offset[X] = (float) sumX / 10.0;  
   offset[Y] = (float) sumY / 10.0;
   offset[Z] = (float) sumZ / 10.0;
+
+  vehicleStatus = vehicleStatus | GYRO_READY;
 
 }
 

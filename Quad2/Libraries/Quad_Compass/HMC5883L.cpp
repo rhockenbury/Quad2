@@ -37,14 +37,18 @@ void HMC5883L::init()
   if( test() ) // if sensor responds to ID test
   {
     compStatus = ON;
-	vehicleStatus = vehicleStatus | MAG_READY;
+    setRange(HMC5883L_GAIN2);
+    setSampleRate(HMC5883L_SMPLRT_75HZ);
+    setMode(HMC5883L_CONTMODE);
+  }
+  else {
+	  compStatus = OFF;
+	  Serial.println("WARNING: compass not responding to init");
   }
 
-  setRange(HMC5883L_GAIN2); 
-  setSampleRate(HMC5883L_SMPLRT_75HZ); 
-  setMode(HMC5883L_CONTMODE); 
 
-  setOffset(); 
+
+  //setOffset();
 }
 
 
@@ -113,7 +117,7 @@ void HMC5883L::setOffset()
   //offset[X] = (float) sumX / 10.0;
   //offset[Y] = (float) sumY / 10.0;
   //offset[Z] = 0.0;// (float) sumZ / 10.0 - (float) HMC5883L_SENSITIVITY2;
-
+  vehicleStatus = vehicleStatus | MAG_READY;
 }
 
 

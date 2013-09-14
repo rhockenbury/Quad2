@@ -15,8 +15,8 @@
 #include "../Quad_I2C/I2Cdev.h"
 #include <inttypes.h>
 
-
 #define ADXL345_ADDR    0x53
+#define ADXL345_DEVID   0xE5
 
 #define ADXL345_WHOAMI_REGADDR      0x00  // contains I2C address
 #define ADXL345_XOFFSET_REGADDR     0x1E  // contains axis offset
@@ -55,39 +55,34 @@
 #define ADXL345_RANGE_8G       0b10
 #define ADXL345_RANGE_16G      0b11
 
-#define ADXL345_2GSENSITIBITY   256  // G-sensitivity options
+#define ADXL345_2GSENSITIVITY   256  // G-sensitivity options
 #define ADXL345_4GSENSITIVITY   256
-#define ADXL345_8GSENSITIVITY   305
+#define ADXL345_8GSENSITIVITY   320
 #define ADXL345_16GSENSITIVITY  32
 
 
 class ADXL345 {
-  public:
-    ADXL345();
+    public:
 
-    void init();
-    bool test();
+	    ADXL345();
+        bool init();
+        bool test();
+        uint8_t getID();
+        void setSampleRate(uint8_t rate);
+        void setFormat(uint8_t range);
+        void setPowerMode(bool mode);
+        void setOffset();
+        void getRawData();
+        void getValue(float *value);
 
-    uint8_t getID();
+    private:
 
-    void setSampleRate(uint8_t rate);
-    void setFormat(uint8_t range);
-    void setPowerMode(bool mode);
-
-    void setOffset();
-    void getRawData();
-    void getValue(float *value);
-
-
-  private:
-    uint8_t devAddr;
-    uint8_t buffer[6];
-    int16_t data[3];
-    float offset[3];
-
-    bool accelStatus;
+        uint8_t devAddr;
+        uint8_t buffer[6];
+        int16_t data[3];
+        float offset[3];
+        bool accelStatus;
 
 };
-
 
 #endif /* ADXL345_h */
