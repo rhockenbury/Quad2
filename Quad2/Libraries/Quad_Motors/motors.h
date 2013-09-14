@@ -21,6 +21,8 @@
 #define MOTOR_COMMAND_MIN 1000
 #define MOTOR_COMMAND_MAX 2000
 
+#include <arduino.h>
+
 class Motors {
 
     public:
