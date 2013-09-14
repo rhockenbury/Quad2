@@ -10,6 +10,7 @@
  */
 
 #include "serial.h"
+#include "../Quad_Defines/globals.h"
 
 unsigned int serialCounter = 1;
 
@@ -19,6 +20,16 @@ void serialOpen()
   serialCounter++;
 
   #ifdef SERIAL_CHART
+    Serial.print(",");
+  #endif
+
+  #ifdef SERIAL_MONITOR
+    Serial.print("\t\t");
+  #endif
+
+  Serial.print(vehicleStatus, BIN);
+
+#ifdef SERIAL_CHART
     Serial.print(",");
   #endif
 
