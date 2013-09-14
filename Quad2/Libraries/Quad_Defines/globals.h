@@ -17,9 +17,10 @@
 #define Y 1
 #define Z 2
 
-#define ROLL_AXIS  0
-#define PITCH_AXIS 1
-#define YAW_AXIS   2
+#define ROLL_AXIS     0
+#define PITCH_AXIS    1
+#define YAW_AXIS      2
+#define THROTTLE_AXIS 3
 
 #define TRUE  1
 #define FALSE 0
@@ -31,17 +32,18 @@
 #define ACCEL_READY  0x2
 #define MAG_READY    0x4
 #define BATT_READY   0x8
-#define RX_READY     0x16
-#define TX_READY     0x32
-#define MOTOR_READY  0x64
-#define AUX_READY    0x128
+#define RX_READY     0x10
+#define TX_READY     0x20
+#define MOTOR_READY  0x40
+#define AUX_READY    0x80
 
 extern bool inFlight;
 extern uint8_t vehicleStatus;
 
-#define SENSORS_ONLINE (vehicleStatus & 0x7 == 0x7)
-#define MOTORS_ONLINE  (vehicleStatus & 0x64 == 0x64)
-#define SYSTEM_ONLINE  (vehicleStatus & 0xFF == 0xFF)
+#define SENSORS_ONLINE ((vehicleStatus & 0x7) == 0x7)  // ==
+#define RX_ONLINE      ((vehicleStatus & RX_READY) == RX_READY)
+#define MOTORS_ONLINE  ((vehicleStatus & ) == 0x64)
+#define SYSTEM_ONLINE  ((vehicleStatus & 0xFF) == 0xFF)
 
 // 6 channels - roll, pitch, throttle, yaw, mode, aux1
 #define ROLL_CHANNEL    	0
