@@ -1,14 +1,14 @@
 /*
  * flightControl.h
  *
- *  Created on: Aug 17, 2013
- *      Author: ryler
+ *  Created on: August 17, 2013
+ *      Author: Ryler Hockenbury
  */
 
-#ifndef FLIGHTCONTROL_H_
-#define FLIGHTCONTROL_H_
+#ifndef flightControl_h
+#define flightControl_h
+
+#include "../../Libraries/Quad_Defines/globals.h"
 
 
-
-
-#endif /* FLIGHTCONTROL_H_ */
+#endif /* flightControl_h */
