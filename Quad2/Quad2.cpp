@@ -17,7 +17,7 @@ ADXL345 accel;
 HMC5883L comp;
 AR6210 receiver;
 PID controller[2]; // pitch and roll controllers
-Motors motors;
+//Motors motors;
 
 float gyroData[3] = {0.0, 0.0, 0.0};  // x, y and z axis
 float accelData[3] = {0.0, 0.0, 0.0};
@@ -38,6 +38,13 @@ uint32_t last100HzTime = 0;
 uint32_t last50HzTime = 0;
 uint32_t last10HzTime = 0;
 
+
+float pitchAdjust = 0.0;
+ float rollAdjust = 0.0;
+ float rollCurPoint = 0.0;
+ float pitchCurPoint = 0.0;
+
+
 /*
  * Helper routine to call radio ISR
  */
@@ -46,20 +53,23 @@ void handleReceiverInterruptHelper() {
 }
 
 void setup() {
-  //Wire.begin();         // initialize I2C bus
-  Serial.begin(115200);  // initialize serial link 57600
-  //receiver.init();      // initialize receiver
+  Wire.begin();         // initialize I2C bus
+  Serial.begin(57600);  // initialize serial link @ baudrate = 57600
+  receiver.init();      // initialize receiver
 
   Serial.println("INFO: attaching receiver interrupts");
   pinMode(PPM_PIN, INPUT);
   attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
   delay(200);
 
-  //Serial.println("INFO: initializing sensors");
-  //gyro.init();
-  //accel.init();
-  //comp.init();
+  Serial.println("INFO: initializing sensors");
+  gyro.init();
+  accel.init();
+  comp.init();
 
+  //gyro.setOffset();
+  //accel.setOffset();
+  //comp.setOffset();
 
   //Serial.println("INFO: attaching motors");
   //motors.init();
@@ -75,74 +85,59 @@ void loop() {
   deltaSystemTime = currentSystemTime - lastSystemTime;
   lastSystemTime = currentSystemTime;
 
-  //Serial.println("current:" + currentSystemTime);
-  //Serial.println("100Hz:" + last100HzTime);
-  //Serial.println("50Hz:" + last50HzTime);
-  //Serial.println("10Hz:" + last10HzTime);
-  //Serial.println("last:" + deltaSystemTime);   // loop time
-
-
-  //if(currentSystemTime < last100HzTime)
-	//  last100HzTime = 0;
-
-  //if(currentSystemTime < last50HzTime)
-	//  last50HzTime = 0;
-
-  //if(currentSystemTime < last10HzTime)
- 	//  last10HzTime = 0;
-
-
-  // TODO there is a problem with timer overflow here, and maintaining frequency
-     /// this is fixed, i think, just need testing
+  //Serial.println("current: " + currentSystemTime);
+  //Serial.println("100Hz: " + last100HzTime);
+  //Serial.println("50Hz: " + last50HzTime);
+  //Serial.println("10Hz: " + last10HzTime);
+  //Serial.println("last: " + deltaSystemTime);   // loop time
 
   // TODO Can i make the assumption that these happend periodically as i would except?
 
-
-
   /* 100 Hz Tasks
    * Poll IMU sensors, calculate orientation, update controller and command motors.
-   *
    */
-  if(currentSystemTime >= (last100HzTime + 10)) {
-	/*
+  if(currentSystemTime >= (last100HzTime + 10) && SENSORS_ONLINE) {
     gyro.getRate(gyroData);
     accel.getValue(accelData);
     comp.getHeading(compData);
-    getOrientation(currentFlightAngle, gyroData, accelData, compData);
-	*/
+    getOrientation(currentFlightAngle, gyroData, accelData, compData); // could put inside flight control? - eliminate currentAngle and gyroData
 
-	// processFlightControl(targetFlightAngle, currentFlightAngle, motors, controller    );
-    // processMotorCommands(motors);
 
-    //levelAdjust[ROLL_AXIS] = targetFlightAngle[ROLL_AXIS] - currentFlightAngle[ROLL_AXIS];
-    //levelAdjust[PITCH_AXIS] = targetFlightAngle[PITCH_AXIS] - currentFlightAngle[PITCH_AXIS];
 
-    //motor.axisCommand[ROLL_AXIS] = controller[ROLL_AXIS].updatePid(1500.0 + gyroData[1], stickCommands[ROLL] + levelAdjust[ROLL_AXIS]);
-    //motor.axisCommand[PITCH_AXIS] = controller[PITCH_AXIS].updatePid(1500.0 + gyroData[0], stickCommands[PITCH] + levelAdjust[PITCH_AXIS]);
+    rollAdjust  = targetFlightAngle[ROLL_AXIS] - currentFlightAngle[1];  // mismatch? - depends on orientation
+    pitchAdjust = targetFlightAngle[PITCH_AXIS] - currentFlightAngle[0];
 
-    //motor.axisCommand[THROTTLE] = stickCommands[THROTTLE];
-    //motor.axisCommand[YAW_AXIS] = stickCommands[YAW];
+    //float factor = 1.0;
 
-    //motor.commandMotors(MOTOR1, command);// = throttle + roll + pitch + yaw commands;
 
-	//motor1Power = throttle + pitchOffset + yawOffset;
-	//motor2Power = throttle + rollOffset  - yawOffsett;
-	//motor3Power = throttle - pitchOffset + yawOffsett;
-	//motor4Power = throttle - rollOffset  - yawOffsett;
+    // also try just using angles
+    rollCurPoint = 1500.0 + gyroData[1];   // rate of change (degrees/second)
+    //float rollSetPoint = stickCommands[ROLL_CHANNEL] + factor*rollAdjust; //(degrees)
+
+    pitchCurPoint = 1500.0 + gyroData[0];
+    //float pitchSetPoint = stickCommands[PITCH_CHANNEL] + factor*pitchAdjust;
+
+    //motorAxisCommand[ROLL_AXIS] = controller[ROLL_AXIS].updatePid(1500.0 + gyroData[1], stickCommands[ROLL_CHANNEL] + levelAdjust[ROLL_AXIS]);
+    //motorAxisCommand[PITCH_AXIS] = controller[PITCH_AXIS].updatePid(1500.0 + gyroData[0], stickCommands[PITCH_CHANNEL] + levelAdjust[PITCH_AXIS]);
+
+
+
+
+
+
+	//processFlightControls(stickCommands, targetFlightAngle, controller); //currentFlightAngle, gyroData
+
 
     last100HzTime = currentSystemTime;
   }
 
 
-
-
   /* 50 Hz Tasks
    * Read and process commands from radio, and monitor battery.
-   *
    */
-  if(currentSystemTime >= (last50HzTime + 20)) {
+  if(currentSystemTime >= (last50HzTime + 20) && RX_ONLINE) {
     receiver.getStickCommands(stickCommands);
-    processStickCommands(stickCommands, targetFlightAngle, controller);
+    processFlightCommands(stickCommands, targetFlightAngle, controller, &gyro, &accel, &comp);
 
     //TODO - monitor battery health
     //get voltage
@@ -153,27 +148,28 @@ void loop() {
   }
 
 
-
-
   /* 10 Hz Tasks
    * Send serial stream to ground station.
-   *
    */
   if(currentSystemTime >= (last10HzTime + 100)) {
     serialOpen();
-    //serialPrint(currentFlightAngle, 3); // must remove extra comma
-
+    serialPrint(currentFlightAngle, 3);
     serialPrint(stickCommands, 6);
-    serialPrint(targetFlightAngle, 2);
-    serialPrint((float)receiver.getSyncCounter());
-    serialPrint(controller[ROLL_AXIS].getMode());
-    serialPrint(controller[PITCH_AXIS].getMode());
+
+    //serialPrint(rollCurPoint);
+    //serialPrint(pitchCurPoint);
+    //serialPrint(targetFlightAngle, 2);
+
+    //serialPrint(rollAdjust);
+    //serialPrint(pitchAdjust);
+
+    //serialPrint((float)receiver.getSyncCounter());
+    //serialPrint(controller[ROLL_AXIS].getMode());
+    //serialPrint(controller[PITCH_AXIS].getMode());
 
     //serialPrint(battVoltage);
     //serialPrint(battCurrent);
     serialClose();
-;
-
 
     // TODO -  check for and process serial input
      //  pid gains
