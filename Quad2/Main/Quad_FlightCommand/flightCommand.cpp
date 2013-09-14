@@ -17,11 +17,16 @@ bool motorArmed  = false;
 /*
  * Distribute stick commands to system components
  */
-void processStickCommands(float stickCommands[], float targetFlightAngle[], PID controller[]) {
+void processFlightCommands(float stickCommands[], float targetFlightAngle[], PID controller[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
 	// process zero throttle stick commands
     if(stickCommands[THROTTLE_CHANNEL] < STICK_MINCHECK) {
-        processZeroThrottleCommands(stickCommands);
+        processZeroThrottleCommands(stickCommands, gyro, accel, comp);
 	}
+
+    //if(!inFlight && motorArmed == true)
+
+    // set some in flight check so we cannot disarm motors while flying
+
 
     // get flight angles from sticks
 	targetFlightAngle[ROLL_AXIS] = AR6210::mapStickCommandToAngle(stickCommands[ROLL_CHANNEL]);
@@ -40,20 +45,19 @@ void processStickCommands(float stickCommands[], float targetFlightAngle[], PID 
 /*
  * Process system setup and teardown commands
  */
-void processZeroThrottleCommands(float stickCommands[]) {
-
-	// zero sensors
-	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK &&
-			stickCommands[ROLL_CHANNEL] < STICK_MINCHECK &&
-			stickCommands[YAW_CHANNEL] > STICK_MAXCHECK &&
-			!SENSORS_ONLINE) {
-        Serial.println("Info: Zeroing sensors");
-        // zero sensors here
-
-        vehicleStatus = 0x7;
+void processZeroThrottleCommands(float stickCommands[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
+	// zero sensors - can only be zeroed once
+	// Left stick bottom left, right stick bottom right
+	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK && stickCommands[ROLL_CHANNEL] < STICK_MINCHECK &&
+	   stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && !SENSORS_ONLINE) {
+		  Serial.println("Info: Zeroing sensors");
+          gyro->setOffset();
+          accel->setOffset();
+          comp->setOffset();
 	}
 
 	// arm motors
+	// Left stick bottom right
 	if(stickCommands[YAW_CHANNEL] < STICK_MINCHECK && SENSORS_ONLINE && motorArmed == false) {
         Serial.println("Warning: Arming motors");
         // arm motors here
@@ -62,12 +66,17 @@ void processZeroThrottleCommands(float stickCommands[]) {
 	}
 
 	// disarm motors
-	if(stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && motorArmed == ON) {
+	// Left stick bottom left
+	if(stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && motorArmed == ON /*&& safety*/) {
         Serial.println("Warning: Disarming motors");
         // disarm motors here
         motorArmed = false;
         inFlight = false;
 	}
+
+	//if(/* motionless or rotors not spinning*/    ) {
+	//	safety = true;
+	//}
 }
 
 
