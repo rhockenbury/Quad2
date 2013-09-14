@@ -42,17 +42,16 @@ AR6210::AR6210()
         smoothFactor[channel] = RADIO_SMOOTH_FACTOR;  // configure in conf.h
         scaleFactor[channel] = RADIO_SCALE_FACTOR;
     }
-
-    vehicleStatus = vehicleStatus | RX_READY;
 }
 
 
 /*
  * Initialize receiver interrupts
  */
-//void AR6210::init() {
-//    vehicleStatus = vehicleStatus | RX_READY;
-//}
+void AR6210::init() {
+	// run an id test or something
+    vehicleStatus = vehicleStatus | RX_READY;
+}
 
 
 /*
