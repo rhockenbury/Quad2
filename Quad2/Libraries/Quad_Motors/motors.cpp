@@ -15,7 +15,7 @@ Servo esc[4];
 /*
  *
  */
-void Motors::Motors() {
+Motors::Motors() {
 
 }
 
