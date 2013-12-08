@@ -28,7 +28,7 @@ PID::PID() {
 
 	sampleTime = 20; // 20 ms
 
-	inAuto = false;
+	inAuto = true;
 }
 
 
