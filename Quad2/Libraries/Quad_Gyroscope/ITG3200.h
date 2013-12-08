@@ -1,5 +1,5 @@
 /*
- * HMC5883L.h
+ * ITG3200.h
  *
  *  Created on: April 20, 2013
  *      Author: Ryler Hockenbury
@@ -60,7 +60,7 @@ class ITG3200
   public:
     ITG3200(); 
 
-    void init(); 
+    bool init();
     bool test();
 
     uint8_t getID();
@@ -82,6 +82,7 @@ class ITG3200
     
     float offset[3]; 
     int16_t data[3]; 
+    bool gyroStatus;
 
 };
 
