@@ -42,7 +42,7 @@ extern uint8_t vehicleStatus;
 
 #define SENSORS_ONLINE ((vehicleStatus & 0x7) == 0x7)  // ==
 #define RX_ONLINE      ((vehicleStatus & RX_READY) == RX_READY)
-#define MOTORS_ONLINE  ((vehicleStatus & ) == 0x64)
+#define MOTORS_ONLINE  ((vehicleStatus & MOTOR_READY) == 0x64)
 #define SYSTEM_ONLINE  ((vehicleStatus & 0xFF) == 0xFF)
 
 // 6 channels - roll, pitch, throttle, yaw, mode, aux1
