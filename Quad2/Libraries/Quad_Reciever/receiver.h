@@ -43,8 +43,8 @@ class AR6210 {
         inline void channelSync();
         uint32_t getSyncCounter();
     	void getStickCommands(float stickCommands[MAX_CHANNELS]);
-    	static float mapStickCommandToAngle(float stickCommand);
-    	static bool mapStickCommandToBool(float stickCommand);
+    	static float mapStickCommandToAngle(float stickCommand, uint8_t channel);
+    	static bool mapStickCommandToBool(float stickCommand, uint8_t channel);
     	inline float smoothChannels(uint16_t channelValue, uint8_t channelNum);
     	void setSmoothFactor(float factor[MAX_CHANNELS]);
     	void setScaleFactor(float factor[MAX_CHANNELS]);

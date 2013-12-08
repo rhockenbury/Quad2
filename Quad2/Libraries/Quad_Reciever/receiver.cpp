@@ -15,14 +15,12 @@
 #include "../Quad_Defines/globals.h"
 
 
-AR6210::AR6210()
-{
+AR6210::AR6210() {
     channelStartTime = 0;
     currentChannel = 0;
     syncCounter = 0;
 
-    for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++)
-    {
+    for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++) {
         rawChannelValue[channel] = STICK_COMMAND_MID;
         smoothChannelValue[channel] = STICK_COMMAND_MID;
 
@@ -39,8 +37,8 @@ AR6210::AR6210()
         	rawChannelValue[channel] = STICK_COMMAND_MIN;
         }
 
-        smoothFactor[channel] = RADIO_SMOOTH_FACTOR;  // configure in conf.h
-        scaleFactor[channel] = RADIO_SCALE_FACTOR;
+        smoothFactor[channel] = RADIO_SMOOTH_FACTOR[channel];  // configure in conf.h
+        scaleFactor[channel] = RADIO_SCALE_FACTOR[channel];
     }
 }
 
@@ -96,7 +94,7 @@ inline void AR6210::channelSync() {
  * Smooth and scale stick inputs
  */
 inline float AR6210::smoothChannels(uint16_t channelValue, uint8_t channelNum) {
-	return filter::LPF( (float) channelValue, smoothChannelValue[channelNum], smoothFactor[channelNum]) / scaleFactor[channelNum];
+	return filter::LPF( (float) channelValue / scaleFactor[channelNum], smoothChannelValue[channelNum], smoothFactor[channelNum]);
 }
 
 
@@ -128,19 +126,20 @@ void AR6210::getStickCommands(float stickCommands[MAX_CHANNELS]) {
  * Convert a raw stick value to a flight angle
  * The min.(max.) pulse length should map to -45(+45) degrees
  */
-float AR6210::mapStickCommandToAngle(float stickCommand) {
-    float stickAngle = 0.09*stickCommand - 135.0;
-    return constrain(stickAngle, -45.0, 45.0);
+float AR6210::mapStickCommandToAngle(float stickCommand, uint8_t channel) {
+    //float stickAngle = 0.09*stickCommand - 135.0;
+    float stickAngle = map(stickCommand, STICK_COMMAND_MIN, STICK_COMMAND_MAX, -MAX_COMMAND_ANGLE, MAX_COMMAND_ANGLE);
+    return constrain(stickAngle, -MAX_COMMAND_ANGLE, MAX_COMMAND_ANGLE);
 }
 
 
 /*
  * Convert a raw stick value to a ON/OFF state
  */
-bool AR6210::mapStickCommandToBool(float stickCommand) {
-    if(stickCommand < 1300)
+bool AR6210::mapStickCommandToBool(float stickCommand, uint8_t channel) {
+    if(stickCommand < 1300.0/scaleFactor[channel])
         return FALSE;
-    else if(stickCommand > 1700)
+    else if(stickCommand > 1700.0/scaleFactor[channel])
         return TRUE;
     else {
     	Serial.println("Warning: Stick command cannot be mapped to boolean type");
@@ -168,8 +167,10 @@ uint32_t AR6210::getSyncCounter() {
  */
 void AR6210::setSmoothFactor(float factor[MAX_CHANNELS]) {
     for(uint8_t channel = 0; channel < MAX_CHANNELS; channel++) {
-	    smoothFactor[channel] = factor[channel];
-	    // guard mode and aux
+	    if(channel != MODE_CHANNEL & channel != AUX1_CHANNEL) { // boolean channels don't get smoothed
+	    	smoothFactor[channel] = factor[channel];
+	    }
+
 	    smoothChannelValue[channel] = 0.0;  // clear weighted history
     }
 }
