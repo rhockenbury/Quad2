@@ -33,7 +33,6 @@ ADXL345::ADXL345() {
  * Enable measurements
  */
 bool ADXL345::init() {
-    // sensors needs to be alive to init
 	if(test()) {
         accelStatus = ON;
         setSampleRate(ADXL345_RATE_100);
@@ -43,7 +42,7 @@ bool ADXL345::init() {
     }
     else {
 	    accelStatus = OFF;
-	    Serial.println("WARNING: accelerometer not responding to init");
+	    Serial.println("WARNING: accelerometer not responding");
 	    return false;
     }
 }
