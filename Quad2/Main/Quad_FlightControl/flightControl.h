@@ -9,6 +9,6 @@
 #define flightControl_h
 
 #include "../../Libraries/Quad_Defines/globals.h"
-
+#include "../../Libraries/Quad_Motors/motors.h"
 
 #endif /* flightControl_h */
