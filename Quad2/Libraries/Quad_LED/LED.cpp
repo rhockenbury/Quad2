@@ -17,9 +17,9 @@
  * Constructor
  */
 LED::LED() {
-	pinMode(RED_LED_PIN, OUTPUT);
-	pinMode(YELLOW_LED_PIN, OUTPUT);
-	pinMode(GREEN_LED_PIN, OUTPUT);
+	pinMode(RED_LED, OUTPUT);
+	pinMode(YELLOW_LED, OUTPUT);
+	pinMode(GREEN_LED, OUTPUT);
 }
 
 /*

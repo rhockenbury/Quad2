@@ -15,9 +15,9 @@
 
 #include <arduino.h>
 
-#define RED_LED_PIN      10
-#define YELLOW_LED_PIN   11
-#define GREEN_LED_PIN    12
+#define RED_LED     13
+#define YELLOW_LED  12
+#define GREEN_LED   11
 
 class LED {
   public:
