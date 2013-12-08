@@ -58,7 +58,7 @@ class HMC5883L
   public:
     HMC5883L(); 
 
-    void init(); 
+    bool init();
     inline bool test(); 
 
     inline uint8_t getID(); 
@@ -77,6 +77,8 @@ class HMC5883L
 
     float offset[3]; 
     int16_t data[3]; 
+
+    bool compStatus;
 
 };
 
