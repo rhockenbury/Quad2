@@ -39,12 +39,6 @@ uint32_t last50HzTime = 0;
 uint32_t last10HzTime = 0;
 
 
-float pitchAdjust = 0.0;
- float rollAdjust = 0.0;
- float rollCurPoint = 0.0;
- float pitchCurPoint = 0.0;
-
-
 /*
  * Helper routine to call radio ISR
  */
@@ -52,38 +46,52 @@ void handleReceiverInterruptHelper() {
     receiver.readChannels();
 }
 
+/*
+ * Setup task
+ */
 void setup() {
-  Wire.begin();         // initialize I2C bus
-  Serial.begin(57600);  // initialize serial link @ baudrate = 57600
-  receiver.init();      // initialize receiver
+  Serial.begin(57600);  // initialize serial link @ rate = 57600
 
-  Serial.println("INFO: attaching receiver interrupts");
-  pinMode(PPM_PIN, INPUT);
-  attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
-  delay(200);
+  Serial.println("INFO: Initializing status LEDs...");
+  LED::LED();
 
-  Serial.println("INFO: initializing sensors");
-  gyro.init();
-  accel.init();
-  comp.init();
+  Serial.println("INFO: Initializing I2C bus...");
+  Wire.begin();
 
-  //gyro.setOffset();
-  //accel.setOffset();
-  //comp.setOffset();
+  Serial.println("INFO: Initializing Spektrum receiver...");
+  receiver.init();
+  //pinMode(PPM_PIN, INPUT);
+  //attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
+  //delay(200);
 
-  //Serial.println("INFO: attaching motors");
+  Serial.println("INFO: Initializing sensors...");
+  bool sensorStatus = false;
+  sensorStatus = gyro.init();
+  sensorStatus |= accel.init();
+  sensorStatus |= comp.init();
+
+  if(sensorStatus == false) {
+	  Serial.println("INFO: Unable to initialize sensors");
+  }
+
+  //Serial.println("INFO: Initializing motors");
   //motors.init();
 
-  // run system test
-  // turn on green LED
+  Serial.println("INFO: Entering flight processing loop...");
   delay(200);
-  Serial.println("INFO: entering flight processing loop");
 }
 
+/*
+ * Flight task
+ */
 void loop() {
   currentSystemTime = millis();
   deltaSystemTime = currentSystemTime - lastSystemTime;
   lastSystemTime = currentSystemTime;
+
+  //LED::LEDBlink(RED_LED, 3, 250);
+  //LED::LEDBlink(YELLOW_LED, 3, 250);
+  //LED::LEDBlink(GREEN_LED, 3, 250);
 
   //Serial.println("current: " + currentSystemTime);
   //Serial.println("100Hz: " + last100HzTime);
@@ -96,53 +104,35 @@ void loop() {
   /* 100 Hz Tasks
    * Poll IMU sensors, calculate orientation, update controller and command motors.
    */
-  if(currentSystemTime >= (last100HzTime + 10) && SENSORS_ONLINE) {
-    gyro.getRate(gyroData);
-    accel.getValue(accelData);
-    comp.getHeading(compData);
-    getOrientation(currentFlightAngle, gyroData, accelData, compData); // could put inside flight control? - eliminate currentAngle and gyroData
+  if(currentSystemTime >= (last100HzTime + 10)) {
 
+	if(SENSORS_ONLINE) {
+		gyro.getRate(gyroData);
+		accel.getValue(accelData);
+		comp.getHeading(compData);
 
+		// could put inside flight control? - eliminate currentAngle and gyroData
+		// but lose global access to currentFlightAngle
+		getOrientation(currentFlightAngle, gyroData, accelData, compData);
+	}
 
-    rollAdjust  = targetFlightAngle[ROLL_AXIS] - currentFlightAngle[1];  // mismatch? - depends on orientation
-    pitchAdjust = targetFlightAngle[PITCH_AXIS] - currentFlightAngle[0];
-
-    //float factor = 1.0;
-
-
-    // also try just using angles
-    rollCurPoint = 1500.0 + gyroData[1];   // rate of change (degrees/second)
-    //float rollSetPoint = stickCommands[ROLL_CHANNEL] + factor*rollAdjust; //(degrees)
-
-    pitchCurPoint = 1500.0 + gyroData[0];
-    //float pitchSetPoint = stickCommands[PITCH_CHANNEL] + factor*pitchAdjust;
-
-    //motorAxisCommand[ROLL_AXIS] = controller[ROLL_AXIS].updatePid(1500.0 + gyroData[1], stickCommands[ROLL_CHANNEL] + levelAdjust[ROLL_AXIS]);
-    //motorAxisCommand[PITCH_AXIS] = controller[PITCH_AXIS].updatePid(1500.0 + gyroData[0], stickCommands[PITCH_CHANNEL] + levelAdjust[PITCH_AXIS]);
-
-
-
-
-
-
-	//processFlightControls(stickCommands, targetFlightAngle, controller); //currentFlightAngle, gyroData
-
+    if(RX_ONLINE && SENSORS_ONLINE) {
+    	processFlightControl(targetFlightAngle, currentFlightAngle, controller, gyroData, stickCommands);
+    }
 
     last100HzTime = currentSystemTime;
   }
 
 
   /* 50 Hz Tasks
-   * Read and process commands from radio, and monitor battery.
+   * Read and process commands from radio.
    */
-  if(currentSystemTime >= (last50HzTime + 20) && RX_ONLINE) {
-    receiver.getStickCommands(stickCommands);
-    processFlightCommands(stickCommands, targetFlightAngle, controller, &gyro, &accel, &comp);
+  if(currentSystemTime >= (last50HzTime + 20)) {
 
-    //TODO - monitor battery health
-    //get voltage
-    //get remaining mah
-    //get remaining time
+	if(RX_ONLINE) {
+		receiver.getStickCommands(stickCommands);
+		processFlightCommands(stickCommands, targetFlightAngle, controller, &gyro, &accel, &comp);
+	}
 
     last50HzTime = currentSystemTime;
   }
@@ -175,6 +165,11 @@ void loop() {
      //  pid gains
      //  stick scale/senstivitiy
 
+
+    //TODO - monitor battery health
+        //get voltage
+        //get remaining mah
+        //get remaining time
 
 
     last10HzTime = currentSystemTime;
