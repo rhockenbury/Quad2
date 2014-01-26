@@ -6,85 +6,86 @@
  */
 
 #include "flightCommand.h"
-#include "../../Libraries/Quad_Defines/globals.h"
-#include "../../Libraries/Quad_Reciever/receiver.h"
+#include "globals.h"
+#include "receiver.h"
+#include "LED.h"
+#include "conf.h"
 
 bool controlMode = 0;
 bool auxMode = 0;
-bool motorArmed  = false;
-
 
 /*
  * Distribute stick commands to system components
  */
-void processFlightCommands(float stickCommands[], float targetFlightAngle[], PID controller[],
-		ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
+void processFlightCommands(float stickCommands[], float targetFlightAngle[], Motors *motors,
+		PID controller[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
 
 	// process zero throttle stick commands
     if(stickCommands[THROTTLE_CHANNEL] <= STICK_MINCHECK) {
-        processZeroThrottleCommands(stickCommands, gyro, accel, comp);
+        processZeroThrottleCommands(motors, stickCommands, gyro, accel, comp);
 	}
 
-    if(!inFlight && stickCommands[THROTTLE_CHANNEL] > STICK_MINCHECK && motorArmed) {
+    if(!inFlight && stickCommands[THROTTLE_CHANNEL] > TAKEOFF_THROTTLE && motors->isArmed()) {
     	inFlight = true;
-    	LED::turnLEDon(RED_LED_PIN);
+    	LED::turnOn(RED_LED);
     }
 
     // get flight angles from sticks
-	targetFlightAngle[ROLL_AXIS] = AR6210::mapStickCommandToAngle(stickCommands[ROLL_CHANNEL], ROLL_CHANNEL);
-	targetFlightAngle[PITCH_AXIS] = AR6210::mapStickCommandToAngle(stickCommands[PITCH_CHANNEL], PITCH_CHANNEL);
+	targetFlightAngle[ROLL_AXIS] = AR6210::mapStickCommandToAngle(stickCommands[ROLL_CHANNEL]);
+	targetFlightAngle[PITCH_AXIS] = AR6210::mapStickCommandToAngle(stickCommands[PITCH_CHANNEL]);
 
 	// update controller mode
-	controlMode = AR6210::mapStickCommandToBool(stickCommands[MODE_CHANNEL], MODE_CHANNEL);
-	controller[ROLL_AXIS].setMode(controlMode);
-	controller[PITCH_AXIS].setMode(controlMode);
+	PID::setMode(AR6210::mapStickCommandToBool(stickCommands[MODE_CHANNEL]));
+	//controller[ROLL_AXIS].setMode(controlMode);
+	//controller[PITCH_AXIS].setMode(controlMode);
+	//controller[YAW_AXIS].setMode(controlMode);
 
 	// update aux channel (currently unused)
-	auxMode = AR6210::mapStickCommandToBool(stickCommands[AUX1_CHANNEL], AUX1_CHANNEL);
+	//auxMode = AR6210::mapStickCommandToBool(stickCommands[AUX1_CHANNEL]);
 }
 
 
 /*
- * Process system setup and teardown commands
+ * Process commands to zero sensors, arm and disarm motors.
  */
-void processZeroThrottleCommands(float stickCommands[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp) {
+void processZeroThrottleCommands(Motors *motors, float stickCommands[], ITG3200 *gyro,
+		ADXL345 *accel, HMC5883L *comp) {
 
-	// zero sensors - can only be zeroed once
+	// zero sensors
 	// Left stick bottom left, right stick bottom right
-	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK && stickCommands[ROLL_CHANNEL] < STICK_MINCHECK &&
+	if(stickCommands[PITCH_CHANNEL] < STICK_MINCHECK && stickCommands[ROLL_CHANNEL] > STICK_MAXCHECK &&
 	   stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && !SENSORS_ONLINE) {
 		  Serial.println("Info: Zeroing sensors");
+		  LED::turnOn(GREEN_LED);
+
           gyro->setOffset();
           accel->setOffset();
           comp->setOffset();
-
-          LED::turnLEDon(GREEN_LED_PIN);
 	}
 
 	// arm motors
 	// Left stick bottom right
-	if(stickCommands[YAW_CHANNEL] < STICK_MINCHECK && SENSORS_ONLINE && motorArmed == false) {
+	if(stickCommands[YAW_CHANNEL] < STICK_MINCHECK && SENSORS_ONLINE && !motors->isArmed()) {
         Serial.println("Warning: Arming motors");
-        Motors::init();
-        Motors::armMotors();
-        Motors::pulseMotors(3);
-        Motors::commandAllMotors(1100);
-        motorArmed = true;
+        LED::turnOn(YELLOW_LED);
 
-        LED::turnLEDon(YELLOW_LED_PIN);
+        motors->armMotors();
+        motors->pulseMotors(3);
+        motors->commandAllMotors(1200);
+        //motors->setArmed(true);
 	}
 
 	// disarm motors
 	// Left stick bottom left
-	if(stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && motorArmed == true /*&& safety*/) {
+	if(stickCommands[YAW_CHANNEL] > STICK_MAXCHECK && motors->isArmed()) {
         Serial.println("Warning: Disarming motors");
-        Motors::disarmMotors();
-        motorArmed = false;
+        LED::turnOff(YELLOW_LED);
+        LED::turnOff(RED_LED);
+
+        motors->disarmMotors();
+        //motors->setArmed(false);
         inFlight = false;
 	}
 
-	//if(/* motionless or rotors not spinning*/    ) {
-	//	safety = true;
-	//}
 }
 

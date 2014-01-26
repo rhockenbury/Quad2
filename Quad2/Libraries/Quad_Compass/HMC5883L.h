@@ -12,7 +12,7 @@
 #ifndef HMC5883L_h
 #define HMC5883L_h
 
-#include "../Quad_I2C/I2Cdev.h"
+#include "I2Cdev.h"
 #include <inttypes.h>
 
 #define HMC5883L_ADDR   0x1E

@@ -8,7 +8,12 @@
 #ifndef flightControl_h
 #define flightControl_h
 
-#include "../../Libraries/Quad_Defines/globals.h"
-#include "../../Libraries/Quad_Motors/motors.h"
+#include "globals.h"
+#include "motors.h"
+#include "PID.h"
+#include "conf.h"
+
+void processFlightControl(float motorAxisCommand[], float motorCommand[], float targetFlightAngle[], float currentFlightAngle[],
+		Motors *motors, PID controller[], float gyroData[], float stickCommands[]);
 
 #endif /* flightControl_h */

@@ -9,21 +9,23 @@
 #include "Arduino.h"
 //add your includes for the project Quad2 here
 
-
+// external libraries
 #include <Wire.h>
 
+// main
+#include "compFilter.h"
+#include "flightCommand.h"
+#include "flightControl.h"
 
-#include "Main/Quad_FusionFilter/compFilter.h"
-#include "Main/Quad_FlightCommand/flightCommand.h"
-
-#include "Libraries/Quad_Defines/globals.h"
-#include "Libraries/Quad_PID/PID.h"
-#include "Libraries/Quad_Gyroscope/ITG3200.h"
-#include "Libraries/Quad_Accelerometer/ADXL345.h"
-#include "Libraries/Quad_Compass/HMC5883L.h"
-#include "Libraries/Quad_Reciever/receiver.h"
-#include "Libraries/Quad_Serial/serial.h"
-#include "Libraries/Quad_LED/LED.h"
+// libraries
+#include "globals.h"
+#include "PID.h"
+#include "ITG3200.h"
+#include "ADXL345.h"
+#include "HMC5883L.h"
+#include "receiver.h"
+#include "telemetry.h"
+#include "LED.h"
 
 
 //end of add your includes here

@@ -12,23 +12,29 @@
 uint8_t vehicleStatus = 0x0;
 bool inFlight = false;
 
-ITG3200 gyro;
-ADXL345 accel;
-HMC5883L comp;
-AR6210 receiver;
-PID controller[2]; // pitch and roll controllers
-//Motors motors;
+ITG3200 gyro;		// gyroscope
+ADXL345 accel;		// accelerometer
+HMC5883L comp;		// magnetometer
+AR6210 receiver;	// command radio
+PID controller[3];  // pitch, roll and yaw controllers
+Motors motors;      // speed controllers
+Telemetry com;		// serial radio
+//BattMonitor batt;   // battery
 
 float gyroData[3] = {0.0, 0.0, 0.0};  // x, y and z axis
 float accelData[3] = {0.0, 0.0, 0.0};
 float compData[3] = {0.0, 0.0, 0.0};
 
-float currentFlightAngle[3] = {0.0, 0.0, 0.0}; // roll, pitch, yaw
-float targetFlightAngle[2] = {0.0, 0.0}; // roll and pitch
+float currentFlightAngle[3] = {0.0, 0.0, 0.0};  // roll, pitch, yaw
+float targetFlightAngle[2] = {0.0, 0.0}; 		// roll and pitch
 
-float stickCommands[6] = {STICK_COMMAND_MID, STICK_COMMAND_MID,  // roll, pitch, throttle, yaw, mode, aux1
-		                  STICK_COMMAND_MIN, STICK_COMMAND_MID,
-		                  STICK_COMMAND_MAX, STICK_COMMAND_MIN };
+float stickCommands[8] = {STICK_COMMAND_MID, STICK_COMMAND_MID,   // roll, pitch,
+		                  STICK_COMMAND_MIN, STICK_COMMAND_MID,   // throttle, yaw,
+		                  STICK_COMMAND_MAX, STICK_COMMAND_MIN,   // mode, aux 1,
+		                  STICK_COMMAND_MID, STICK_COMMAND_MID }; // aux2, aux3
+
+float motorCommand[4] = {0.0, 0.0, 0.0, 0.0};
+float motorAxisCommand[4] = {0.0, 0.0, 0.0, 0.0};
 
 uint32_t currentSystemTime = 0;
 uint32_t lastSystemTime = 0;
@@ -38,47 +44,57 @@ uint32_t last100HzTime = 0;
 uint32_t last50HzTime = 0;
 uint32_t last10HzTime = 0;
 
-
 /*
  * Helper routine to call radio ISR
  */
-void handleReceiverInterruptHelper() {
+void inline handleReceiverInterruptHelper() {
     receiver.readChannels();
+}
+
+/*
+ * Safe state
+ */
+void triggerFailSafe() {
+	com.sendTaggedString(ERROR_TAG, "Entering fail safe mode");
+	while(true) {
+		LED::morseSOS(RED_LED);
+	}
 }
 
 /*
  * Setup task
  */
 void setup() {
-  Serial.begin(57600);  // initialize serial link @ rate = 57600
 
-  Serial.println("INFO: Initializing status LEDs...");
-  LED::LED();
+  // allow buffer time for telemetry radio to sync
+  delay(1000);
 
-  Serial.println("INFO: Initializing I2C bus...");
-  Wire.begin();
+  Serial.begin(SERIAL_RATE);
+  com.sendTaggedString(INFO_TAG, "Initializing I2C bus...");
+  Wire.begin();  //TODO: should move to i2c constructor
 
-  Serial.println("INFO: Initializing Spektrum receiver...");
-  receiver.init();
-  //pinMode(PPM_PIN, INPUT);
-  //attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
-  //delay(200);
+  // attach receiver interrupts
+  pinMode(PPM_PIN, INPUT);
+  attachInterrupt(0, handleReceiverInterruptHelper, FALLING);
+  delay(200);
 
-  Serial.println("INFO: Initializing sensors...");
-  bool sensorStatus = false;
-  sensorStatus = gyro.init();
-  sensorStatus |= accel.init();
-  sensorStatus |= comp.init();
-
-  if(sensorStatus == false) {
-	  Serial.println("INFO: Unable to initialize sensors");
+  com.sendTaggedString(INFO_TAG, "Initializing stick receiver...");
+  if(!receiver.init()) {
+	  com.sendTaggedString(ERROR_TAG, "Could not initialize receiver.");
+	  triggerFailSafe();
   }
 
-  //Serial.println("INFO: Initializing motors");
-  //motors.init();
+  com.sendTaggedString(INFO_TAG, "Initializing sensors...");
+  if(!gyro.init() || !accel.init() || !comp.init()) {
+	  com.sendTaggedString(ERROR_TAG, "Could not initialize all sensors.");
+	  triggerFailSafe();
+  }
 
-  Serial.println("INFO: Entering flight processing loop...");
-  delay(200);
+  com.sendTaggedString(INFO_TAG, "Initializing speed controllers");
+  motors.init();
+
+  com.sendTaggedString(INFO_TAG, "Entering flight processing loop...");
+  LED::circle(3, 200);
 }
 
 /*
@@ -89,10 +105,6 @@ void loop() {
   deltaSystemTime = currentSystemTime - lastSystemTime;
   lastSystemTime = currentSystemTime;
 
-  //LED::LEDBlink(RED_LED, 3, 250);
-  //LED::LEDBlink(YELLOW_LED, 3, 250);
-  //LED::LEDBlink(GREEN_LED, 3, 250);
-
   //Serial.println("current: " + currentSystemTime);
   //Serial.println("100Hz: " + last100HzTime);
   //Serial.println("50Hz: " + last50HzTime);
@@ -100,6 +112,7 @@ void loop() {
   //Serial.println("last: " + deltaSystemTime);   // loop time
 
   // TODO Can i make the assumption that these happend periodically as i would except?
+  // am i missing deadlines?
 
   /* 100 Hz Tasks
    * Poll IMU sensors, calculate orientation, update controller and command motors.
@@ -109,15 +122,14 @@ void loop() {
 	if(SENSORS_ONLINE) {
 		gyro.getRate(gyroData);
 		accel.getValue(accelData);
-		comp.getHeading(compData);
+		comp.getHeading(compData);  // these can go in get orientation
 
-		// could put inside flight control? - eliminate currentAngle and gyroData
-		// but lose global access to currentFlightAngle
 		getOrientation(currentFlightAngle, gyroData, accelData, compData);
 	}
 
     if(RX_ONLINE && SENSORS_ONLINE) {
-    	processFlightControl(targetFlightAngle, currentFlightAngle, controller, gyroData, stickCommands);
+    	processFlightControl(motorAxisCommand, motorCommand, targetFlightAngle, currentFlightAngle,
+    			&motors, controller, gyroData, stickCommands);
     }
 
     last100HzTime = currentSystemTime;
@@ -131,8 +143,16 @@ void loop() {
 
 	if(RX_ONLINE) {
 		receiver.getStickCommands(stickCommands);
-		processFlightCommands(stickCommands, targetFlightAngle, controller, &gyro, &accel, &comp);
+		processFlightCommands(stickCommands, targetFlightAngle, &motors, controller,
+				&gyro, &accel, &comp);
 	}
+
+	//if(BATT_ONLINE) {
+		//TODO - monitor battery health
+	        //get voltage
+	        //get remaining mah
+	        //get remaining time
+	//}
 
     last50HzTime = currentSystemTime;
   }
@@ -142,39 +162,28 @@ void loop() {
    * Send serial stream to ground station.
    */
   if(currentSystemTime >= (last10HzTime + 100)) {
-    serialOpen();
-    serialPrint(currentFlightAngle, 3);
-    serialPrint(stickCommands, 6);
 
-    //serialPrint(rollCurPoint);
-    //serialPrint(pitchCurPoint);
-    //serialPrint(targetFlightAngle, 2);
-
-    //serialPrint(rollAdjust);
-    //serialPrint(pitchAdjust);
-
-    //serialPrint((float)receiver.getSyncCounter());
-    //serialPrint(controller[ROLL_AXIS].getMode());
-    //serialPrint(controller[PITCH_AXIS].getMode());
-
-    //serialPrint(battVoltage);
-    //serialPrint(battCurrent);
-    serialClose();
-
-    // TODO -  check for and process serial input
-     //  pid gains
-     //  stick scale/senstivitiy
+	// build a serial line and send
+    com.serialLineStart();
+    //com.serialLineAddFloats(currentFlightAngle, 3);
+    com.serialLineAddFloats(stickCommands, 6);
+    //com.serialLineAddFloats(targetFlightAngle, 2);
+    com.serialLineAddLong((long)receiver.getSyncCounter());
+    com.serialLineAddFloats(motorCommand, 4);
+    com.serialLineAddFloats(motorAxisCommand, 4);
+    com.serialLineSend();
 
 
-    //TODO - monitor battery health
-        //get voltage
-        //get remaining mah
-        //get remaining time
-
+    // receive serial commands
+    //if(Serial.available() > 0) {
+     //  char cmd = Serial.read();
+     //  com.processSerialCommand(cmd, controller);
+    //}
 
     last10HzTime = currentSystemTime;
   }
 }
+
 
 
 /////////////////////////////////////////////

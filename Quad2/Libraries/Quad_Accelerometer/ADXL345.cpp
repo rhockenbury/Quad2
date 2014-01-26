@@ -10,7 +10,7 @@
  */
 
 #include "ADXL345.h"
-#include "../Quad_Defines/globals.h"
+#include "globals.h"
 
 ADXL345::ADXL345() {
     devAddr = ADXL345_ADDR;

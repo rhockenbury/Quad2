@@ -12,12 +12,12 @@
 #ifndef receiver_h
 #define receiver_h
 
-#include "../Quad_Gyroscope/ITG3200.h"
-#include "../Quad_Accelerometer/ADXL345.h"
-#include "../Quad_Compass/HMC5883L.h"
-#include "../../Main/Quad_Conf/conf.h"
+#include "storage.h"
+#include "conf.h"
+#include "utilities.h"
+#include "globals.h"
 
-#define PPM_PIN 2    // digital pin 2 to support external interrupts (Arduino UNO)
+#define PPM_PIN 2  // digital pin 2 to support external interrupts (Arduino UNO)
 
 #define MAX_CHANNELS RADIO_NUM_CHANNELS
 
@@ -30,7 +30,7 @@
 
 #define STICK_MINTHROTTLE (STICK_COMMAND_MIN + 100)
 
-#define MIN_FRAME_WIDTH (20000 - MAX_CHANNELS*2200)
+#define MIN_FRAME_WIDTH (20000 - MAX_CHANNELS*2050)
 #define MAX_CHANNEL_WIDTH (STICK_COMMAND_MAX + 100)
 #define MIN_CHANNEL_WIDTH (STICK_COMMAND_MIN - 100)
 
@@ -38,25 +38,23 @@ class AR6210 {
 
     public:
         AR6210();
-        void init();
+        bool init();
         void readChannels();
         inline void channelSync();
         uint32_t getSyncCounter();
     	void getStickCommands(float stickCommands[MAX_CHANNELS]);
-    	static float mapStickCommandToAngle(float stickCommand, uint8_t channel);
-    	static bool mapStickCommandToBool(float stickCommand, uint8_t channel);
+    	static float mapStickCommandToAngle(float stickCommand);
+    	static bool mapStickCommandToBool(float stickCommand);
     	inline float smoothChannels(uint16_t channelValue, uint8_t channelNum);
-    	void setSmoothFactor(float factor[MAX_CHANNELS]);
-    	void setScaleFactor(float factor[MAX_CHANNELS]);
+    	void setSmoothFactor(float factor);
 
  	 private:
     	uint32_t channelStartTime;
     	uint8_t currentChannel;
     	volatile uint32_t syncCounter;
-    	volatile int16_t rawChannelValue[MAX_CHANNELS]; // may not need volatile here
+    	volatile int16_t rawChannelValue[MAX_CHANNELS];
     	float smoothChannelValue[MAX_CHANNELS];
-    	float smoothFactor[MAX_CHANNELS];
-    	float scaleFactor[MAX_CHANNELS];
+    	float smoothFactor;
 };
 
 #endif  /* receiver_h */

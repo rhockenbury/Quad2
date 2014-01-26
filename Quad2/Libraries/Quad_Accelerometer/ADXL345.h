@@ -12,7 +12,7 @@
 #ifndef ADXL345_h
 #define ADXL345_h
 
-#include "../Quad_I2C/I2Cdev.h"
+#include "I2Cdev.h"
 #include <inttypes.h>
 
 #define ADXL345_ADDR    0x53

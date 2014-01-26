@@ -10,11 +10,15 @@
  */
 
 #include "I2Cdev.h"
+#include "conf.h"
 
-uint16_t I2Cdev::readTimeout = 1000; // 1 sec
+uint16_t I2Cdev::readTimeout = 1000;
+uint8_t I2Cdev::errorCode = 0;
+char* I2Cdev::errorMsg = "SUCCESS";
+uint16_t I2Cdev::errorCounter = 0;
 
 I2Cdev::I2Cdev() {
-	/* empty */
+	//Wire.begin();
 }
 
 /*
@@ -91,7 +95,7 @@ bool I2Cdev::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
     }
 
     status = Wire.endTransmission();
-    errorMsg = status;
+    //errorMsg = status;    // TODO; invalid use
 
   	#ifdef I2CDEV_SERIAL_DEBUG
     	Serial.println(". Done.");
@@ -104,9 +108,9 @@ bool I2Cdev::writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
  * Read a bit from an address on an I2C device
  */
 int8_t I2Cdev::readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, 
-		uint8_t *data, uint16_t TIMEOUT) {
+		uint8_t *data) {
 	uint8_t b;
-	uint8_t count = readByte(devAddr, regAddr, &b, TIMEOUT);
+	uint8_t count = readByte(devAddr, regAddr, &b);
 
 	*data = b & (0x1 << bitNum);
 	return count;
@@ -116,9 +120,9 @@ int8_t I2Cdev::readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum,
  * Read bits from an address on an I2C device
  */
 int8_t I2Cdev::readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, 
-   uint8_t length, uint8_t *data, uint16_t timeout)  {
+   uint8_t length, uint8_t *data)  {
 	uint8_t count, b;
-	if ((count = readByte(devAddr, regAddr, &b, timeout)) != 0) {
+	if ((count = readByte(devAddr, regAddr, &b)) != 0) {
 		uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
     	b &= mask;
     	b >>= (bitStart - length + 1);
@@ -131,16 +135,15 @@ int8_t I2Cdev::readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart,
 /*
  * Read a byte from an address on an I2C device
  */
-int8_t I2Cdev::readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, 
-  uint16_t TIMEOUT) {
-	return readBytes(devAddr, regAddr, 1, data, TIMEOUT);
+int8_t I2Cdev::readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data) {
+	return readBytes(devAddr, regAddr, 1, data);
 }
 
 /*
  * Read bytes from an address on an I2C device
  */
 int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, 
-  uint8_t *data, uint16_t TIMEOUT) {
+  uint8_t *data) {
 
     #ifdef I2CDEV_SERIAL_DEBUG
     	Serial.print("I2C (0x");
@@ -162,7 +165,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
     Wire.beginTransmission(devAddr);
     Wire.requestFrom(devAddr, length);
 
-    while( Wire.available() && (TIMEOUT == 0 || (millis() - tStart) < TIMEOUT) ) {
+    while( Wire.available() && (readTimeout == 0 || (millis() - tStart) < readTimeout) ) {
     	data[count] = Wire.read();
 
     	#ifdef I2CDEV_SERIAL_DEBUG
@@ -176,7 +179,7 @@ int8_t I2Cdev::readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
     Wire.endTransmission();
 
     //check for timeout
-    if( TIMEOUT > 0 && (millis() - tStart) >=TIMEOUT && count < length )
+    if( readTimeout > 0 && (millis() - tStart) >=readTimeout && count < length )
     	count = -1;
 
 	#ifdef I2CDEV_SERIAL_DEBUG

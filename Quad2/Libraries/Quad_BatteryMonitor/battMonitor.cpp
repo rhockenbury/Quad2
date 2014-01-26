@@ -9,7 +9,7 @@
  */
 
 #include "battMonitor.h"
-#include "../Quad_Defines/globals.h"
+#include "globals.h"
 #include <Arduino.h>
 
 // Constructor
@@ -31,7 +31,19 @@ battMonitor::battMonitor()
 
 }
 
+bool battMonitor::init() {
+	float v = getProcessedBattVoltage();
 
+	if(v < V_FULL) {
+		return false;
+		Serial.println("Battery is not fully charged");
+	}
+	else {
+		return true;
+	}
+
+	return false;
+}
 
 // Method to read raw battery voltage on analog pin
 int battMonitor::getRawBattVoltage()

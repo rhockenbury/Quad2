@@ -12,7 +12,7 @@
 #ifndef ITG3200_h
 #define ITG3200_h
 
-#include "../Quad_I2C/I2Cdev.h"
+#include "I2Cdev.h"
 #include <inttypes.h>
 
 #define ITG3200_ADDR_LOW      0x68

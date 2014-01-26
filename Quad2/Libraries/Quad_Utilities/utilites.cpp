@@ -9,7 +9,7 @@
  */
 
 #include <arduino.h>
-#include "math.h"
+#include "utilities.h"
 
 // filter class members
 float filter::LPF(float currentUnfiltered, float lastFiltered, float alpha)

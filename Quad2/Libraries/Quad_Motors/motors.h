@@ -22,22 +22,24 @@
 #define MOTOR_COMMAND_MAX 2000
 
 #include <arduino.h>
-#include <../Quad_Defines/globals.h>
+
 
 class Motors {
 
     public:
 	    Motors();
-	    static void init();
-    	static void armMotors();
-    	static void disarmMotors();
-    	static void killMotors();
-	    static void pulseMotors(uint8_t numPulses);
-	    static void commandMotor(uint8_t numMotor, int command);
-        static void commandAllMotors(int command);
+	    void init();
+    	void armMotors();
+    	void disarmMotors();
+    	void killMotors();
+	    void pulseMotors(uint8_t numPulses);
+	    void commandMotor(uint8_t numMotor, int command);
+        void commandAllMotors(int command);
+        bool isArmed();
+        void setArmed(bool armed);
 
     private:
-
+        bool motorArmed;
 
 };
 

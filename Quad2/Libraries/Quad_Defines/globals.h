@@ -22,9 +22,6 @@
 #define YAW_AXIS      2
 #define THROTTLE_AXIS 3
 
-#define TRUE  1
-#define FALSE 0
-
 #define ON 1
 #define OFF 0
 
@@ -40,18 +37,21 @@
 extern bool inFlight;
 extern uint8_t vehicleStatus;
 
-#define SENSORS_ONLINE ((vehicleStatus & 0x7) == 0x7)  // ==
+#define SENSORS_ONLINE ((vehicleStatus & 0x7) == 0x7)
+#define BATT_ONLINE    ((vehicleStatus & BATT_READY) == BATT_READY)
 #define RX_ONLINE      ((vehicleStatus & RX_READY) == RX_READY)
-#define MOTORS_ONLINE  ((vehicleStatus & MOTOR_READY) == 0x64)
+#define MOTORS_ONLINE  ((vehicleStatus & MOTOR_READY) == MOTOR_READY)
 #define SYSTEM_ONLINE  ((vehicleStatus & 0xFF) == 0xFF)
 
-// 6 channels - roll, pitch, throttle, yaw, mode, aux1
+// 8 channels - roll, pitch, throttle, yaw, mode, aux1, aux2, aux3
 #define ROLL_CHANNEL    	0
 #define PITCH_CHANNEL   	1
 #define THROTTLE_CHANNEL 	2
 #define YAW_CHANNEL     	3
 #define MODE_CHANNEL     	4
 #define AUX1_CHANNEL   		5
+#define AUX2_CHANNEL		6
+#define AUX3_CHANNEL		7
 
 #define MICROS  1000000.0  // 1 second = 1*10^6 microseconds
 #define MILLIS  1000.0     // 1 second = 1*10^3 milliseconds

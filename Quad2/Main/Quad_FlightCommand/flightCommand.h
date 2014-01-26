@@ -8,12 +8,13 @@
 #ifndef flightCommand_h
 #define flightCommand_h
 
-#include "../../Libraries/Quad_PID/PID.h"
-#include "../../Libraries/Quad_Accelerometer/ADXL345.h"
-#include "../../Libraries/Quad_Compass/HMC5883L.h"
-#include "../../Libraries/Quad_Gyroscope/ITG3200.h"
+#include "PID.h"
+#include "ADXL345.h"
+#include "HMC5883L.h"
+#include "ITG3200.h"
+#include "motors.h"
 
-void processFlightCommands(float stickCommands[], float targetFlightAngle[], PID controller[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp);
-void processZeroThrottleCommands(float stickCommands[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp);
+void processFlightCommands(float stickCommands[], float targetFlightAngle[], Motors *motors, PID controller[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp);
+void processZeroThrottleCommands(Motors *motors, float stickCommands[], ITG3200 *gyro, ADXL345 *accel, HMC5883L *comp);
 
 #endif /* flightCommand_h */

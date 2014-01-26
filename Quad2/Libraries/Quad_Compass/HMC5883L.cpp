@@ -10,7 +10,7 @@
  */
 
 #include "HMC5883L.h"
-#include "../Quad_Defines/globals.h"
+#include "globals.h"
 
 
 
@@ -91,28 +91,33 @@ void HMC5883L::setMode(uint8_t mode) {
  * Place offsets in offset variables
  */
 void HMC5883L::setOffset() {
-  int32_t sumX = 0; 
-  int32_t sumY = 0; 
-  int32_t sumZ = 0; 
+	if(compStatus == ON) {
+		int32_t sumX = 0;
+		int32_t sumY = 0;
+		int32_t sumZ = 0;
 
-  for(uint8_t i = 0; i < 10; i++) {
-    getRawData(); // read raw data
+		for(uint8_t i = 0; i < 10; i++) {
+			getRawData(); // read raw data
     
-    sumX = sumX + (int32_t) data[X];
-    sumY = sumY + (int32_t) data[Y];
-    sumZ = sumZ + (int32_t) data[Z];
+			sumX = sumX + (int32_t) data[X];
+			sumY = sumY + (int32_t) data[Y];
+			sumZ = sumZ + (int32_t) data[Z];
 
-    // delay long enough for another sample
-    // to be available on the sensor
-    // @ 75 Hz -> 0.014 sec
-    delay(14); 
-  }
+			// delay long enough for another sample
+			// to be available on the sensor
+			// @ 75 Hz -> 0.014 sec
+			delay(14);
+		}
 
-  // TODO: fix this
-  //offset[X] = (float) sumX / 10.0;
-  //offset[Y] = (float) sumY / 10.0;
-  //offset[Z] = 0.0;// (float) sumZ / 10.0 - (float) HMC5883L_SENSITIVITY2;
-  vehicleStatus = vehicleStatus | MAG_READY;
+		// TODO: fix this
+		//offset[X] = (float) sumX / 10.0;
+		//offset[Y] = (float) sumY / 10.0;
+		//offset[Z] = 0.0;// (float) sumZ / 10.0 - (float) HMC5883L_SENSITIVITY2;
+		vehicleStatus = vehicleStatus | MAG_READY;
+	}
+	else {
+		Serial.println("WARNING: mag is not online -> cannot be zeroed");
+	}
 }
 
 /*

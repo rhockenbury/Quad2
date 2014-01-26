@@ -12,8 +12,8 @@
 #ifndef compFilter_h
 #define compFilter_h
 
-#include "../../Libraries/Quad_Defines/globals.h"
-#include "../../Libraries/Quad_Math/math.h"
+#include "globals.h"
+#include "utilities.h"
 #include <arduino.h> // just for pi i think
 
 //unsigned int previousTime = 0;
@@ -62,6 +62,9 @@ void getOrientation(float flightAngle[3], float gyroData[3], float accelData[3],
 
   compAngle = atan2( (-compData[Y]*cos_roll + compData[Z]*sin_roll) ,
     (compData[X]*cos_pitch + compData[Y]*sin_pitch*sin_roll + compData[Z]*sin_pitch*cos_roll) )*180/PI;
+
+  // magnetic inclination for pittsburgh, PA
+  compAngle -= 8.733;
 
   if(compAngle < 0.0)  // return yaw in range 0 to 360
  	compAngle += 360.0;

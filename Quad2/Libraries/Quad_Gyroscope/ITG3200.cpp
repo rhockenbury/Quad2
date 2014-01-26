@@ -10,14 +10,19 @@
  */
 
 #include "ITG3200.h"
-#include "../Quad_Defines/globals.h"
+#include "globals.h"
 
 ITG3200::ITG3200() {
 	devAddr = ITG3200_ADDR_LOW;
 	gyroStatus = OFF;
   
-	offset = {0.0, 0.0, 0.0};
-	data = {0.0, 0.0, 0.0};
+	offset[X] = 0.0;
+	offset[Y] = 0.0;
+	offset[Z] = 0.0;
+
+	data[X] = 0;
+	data[Y] = 0;
+	data[Z] = 0;
 }
 
 /*
@@ -93,29 +98,34 @@ void ITG3200::setClockSource(uint8_t source) {
  * Set the zero voltage values by averaging 10 samples
  */
 void ITG3200::setOffset() {
-	int32_t sumX = 0;
-	int32_t sumY = 0;
- 	int32_t sumZ = 0;
+	if(gyroStatus == ON) {
+		int32_t sumX = 0;
+		int32_t sumY = 0;
+		int32_t sumZ = 0;
 
- 	for(uint8_t i = 0; i < 10; i++) {
- 		getRawData(); // read raw data
+		for(uint8_t i = 0; i < 10; i++) {
+			getRawData(); // read raw data
     
- 		sumX = sumX + (int32_t) data[X];
- 		sumY = sumY + (int32_t) data[Y];
- 		sumZ = sumZ + (int32_t) data[Z];
+			sumX = sumX + (int32_t) data[X];
+			sumY = sumY + (int32_t) data[Y];
+			sumZ = sumZ + (int32_t) data[Z];
 
- 		// delay long enough for another sample
- 		// to be available on the sensor
- 		// @ 100 Hz -> 0.01 sec
- 		delay(10);
- 	}
+			// delay long enough for another sample
+			// to be available on the sensor
+			// @ 100 Hz -> 0.01 sec
+			delay(10);
+		}
 
- 	offset[X] = (float) sumX / 10.0;
- 	offset[Y] = (float) sumY / 10.0;
- 	offset[Z] = (float) sumZ / 10.0;
+		offset[X] = (float) sumX / 10.0;
+		offset[Y] = (float) sumY / 10.0;
+		offset[Z] = (float) sumZ / 10.0;
 
- 	// set global gyro status
- 	vehicleStatus = vehicleStatus | GYRO_READY;
+		// set global gyro status
+		vehicleStatus = vehicleStatus | GYRO_READY;
+	}
+	else {
+		Serial.println("WARNING: gyro is not online -> cannot be zeroed");
+	}
 }
 
 /*
